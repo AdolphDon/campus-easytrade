@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.mapper.GoodsMapper">
+    <!-- 自定义分页查询 -->
+    <select id="selectGoodsPage" resultType="com.campus.entity.Goods">
+        SELECT * FROM goods
+                    ${ew.customSqlSegment}
+    </select>
+
+    <!-- 收藏量 +1 -->
+    <update id="updateCollectCountPlus">
+        UPDATE goods
+        SET collect_count = collect_count + 1
+        WHERE id = #{goodsId}
+    </update>
+    <!-- 收藏量 -1，且最小为 0，不会出现负数 -->
+    <update id="updateCollectCountMinus">
+        UPDATE goods
+        SET collect_count = GREATEST(collect_count - 1, 0)
+        WHERE id = #{goodsId}
+    </update>
+</mapper>

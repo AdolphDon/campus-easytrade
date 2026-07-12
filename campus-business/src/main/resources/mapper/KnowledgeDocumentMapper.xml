@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.mapper.KnowledgeDocumentMapper">
+
+    <!-- 知识库文档基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.campus.entity.KnowledgeDocument">
+        <id column="id" property="id"/>
+        <result column="file_name" property="fileName"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="md5" property="md5"/>
+        <result column="chunk_count" property="chunkCount"/>
+        <result column="status" property="status"/>
+        <result column="operator" property="operator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+</mapper>
