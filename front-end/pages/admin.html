@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>校易通 - 管理端</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon">🎓</div>
+                <span class="logo-text">校易通</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span>工作台</span>
+                </button>
+                <button class="nav-item" data-tab="users" onclick="switchTab('users')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>用户管理</span>
+                </button>
+                <button class="nav-item" data-tab="admins" onclick="switchTab('admins')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>管理员管理</span>
+                </button>
+                <div class="nav-item nav-parent" data-parent="products" onclick="toggleProductSubMenu()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    <span>商品管理</span>
+                    <svg class="nav-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="nav-submenu" id="productSubMenu">
+                    <button class="nav-sub-item" data-tab="productsReview" onclick="switchTab('productsReview'); event.stopPropagation();">商品审核</button>
+                    <button class="nav-sub-item" data-tab="productsCategory" onclick="switchTab('productsCategory'); event.stopPropagation();">商品分类</button>
+                    <button class="nav-sub-item" data-tab="productsSearch" onclick="switchTab('productsSearch'); event.stopPropagation();">商品速查</button>
+                </div>
+
+                <div class="nav-item nav-parent" data-parent="campusNews" onclick="toggleCampusNewsSubMenu()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <span>校园公告管理</span>
+                    <svg class="nav-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="nav-submenu" id="campusNewsSubMenu">
+                    <button class="nav-sub-item" data-tab="campusNews" onclick="switchTab('campusNews'); event.stopPropagation();">校园资讯</button>
+                    <button class="nav-sub-item" data-tab="newsCategory" onclick="switchTab('newsCategory'); event.stopPropagation();">资讯分类</button>
+                    <button class="nav-sub-item" data-tab="platformNews" onclick="switchTab('platformNews'); event.stopPropagation();">平台动态</button>
+                </div>
+
+                <button class="nav-item" data-tab="knowledge" onclick="switchTab('knowledge')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                    <span>AI知识库管理</span>
+                </button>
+
+                <button class="nav-item" data-tab="sensitiveWords" onclick="switchTab('sensitiveWords')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                    <span>敏感词管理</span>
+                </button>
+
+                <button class="nav-item" data-tab="feedbacks" onclick="switchTab('feedbacks')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>用户意见反馈</span>
+                </button>
+
+                <div class="nav-divider"></div>
+
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="switch-user-btn" onclick="switchToUser()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    <span>切换用户视图</span>
+                </button>
+                <button class="logout-btn-sidebar" onclick="logout()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>退出登录</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 class="page-title" id="pageTitle">工作台</h1>
+                </div>
+                <div class="topbar-right">
+                    <div class="admin-info">
+                        <div class="admin-avatar">
+                            <span id="adminAvatarText">管</span>
+                        </div>
+                        <span class="admin-name" id="adminNameTop">管理员</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div class="tab-content active" id="dashboardTab">
+                    <!-- ===== 数据概览 ===== -->
+                    <div class="stats-row">
+                        <div class="stat-card-modern" onclick="switchTab('users')">
+                            <div class="stat-icon blue">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <div class="stat-data">
+                                <div class="stat-number" id="totalUsers">--</div>
+                                <div class="stat-label">用户总数</div>
+                            </div>
+                            <div class="stat-trend up"><span id="userTrend">今日+--</span></div>
+                        </div>
+
+                        <div class="stat-card-modern" onclick="switchTab('admins')">
+                            <div class="stat-icon indigo">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            </div>
+                            <div class="stat-data">
+                                <div class="stat-number" id="totalAdmins">--</div>
+                                <div class="stat-label">管理员总数</div>
+                            </div>
+                            <div class="stat-trend up"><span>实时</span></div>
+                        </div>
+
+                        <div class="stat-card-modern" onclick="switchTab('productsReview')">
+                            <div class="stat-icon green">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                            </div>
+                            <div class="stat-data">
+                                <div class="stat-number" id="totalProducts">--</div>
+                                <div class="stat-label">商品总数</div>
+                            </div>
+                            <div class="stat-trend up"><span>实时</span></div>
+                        </div>
+
+                        <div class="stat-card-modern" onclick="switchTab('knowledge')">
+                            <div class="stat-icon purple">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                            </div>
+                            <div class="stat-data">
+                                <div class="stat-number" id="totalDocs">--</div>
+                                <div class="stat-label">知识文档</div>
+                            </div>
+                            <div class="stat-trend up"><span>实时</span></div>
+                        </div>
+
+                        <div class="stat-card-modern" onclick="switchTab('sensitiveWords')">
+                            <div class="stat-icon pink">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                            </div>
+                            <div class="stat-data">
+                                <div class="stat-number" id="totalSwCount">--</div>
+                                <div class="stat-label">敏感词数</div>
+                            </div>
+                            <div class="stat-trend up"><span>实时</span></div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 快捷功能区 ===== -->
+                    <div class="dashboard-grid">
+                        <section class="card-section">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                    待办事项
+                                </h3>
+                            </div>
+                            <div class="pending-list-modern">
+                                <div class="pending-item-modern" onclick="switchTab('productsReview')">
+                                    <div class="pending-icon-box yellow">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                    </div>
+                                    <div class="pending-content">
+                                        <span class="pending-title">待审核商品</span>
+                                        <span class="pending-desc">需要审核新发布的商品</span>
+                                    </div>
+                                    <span class="pending-count-badge" id="pendingProducts">0</span>
+                                    <svg class="pending-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                </div>
+                                <div class="pending-item-modern" onclick="switchTab('productsReview')">
+                                    <div class="pending-icon-box blue">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                    </div>
+                                    <div class="pending-content">
+                                        <span class="pending-title">待申诉处理</span>
+                                        <span class="pending-desc">用户提交的商品申诉</span>
+                                    </div>
+                                    <span class="pending-count-badge" id="pendingAppeals">0</span>
+                                    <svg class="pending-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="card-section">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                    功能总览
+                                </h3>
+                            </div>
+                            <div class="module-grid">
+                                <button class="module-btn" onclick="switchTab('users')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#2563eb;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    </div>
+                                    <span>用户管理</span>
+                                </button>
+                                <button class="module-btn" onclick="switchTab('admins')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);color:#4f46e5;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                    </div>
+                                    <span>管理员管理</span>
+                                </button>
+                                <button class="module-btn" onclick="switchTab('productsReview')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);color:#d97706;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                    </div>
+                                    <span>商品审核</span>
+                                </button>
+                                <button class="module-btn" onclick="switchTab('productsCategory')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#059669;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg>
+                                    </div>
+                                    <span>商品分类</span>
+                                </button>
+                                <button class="module-btn" onclick="switchTab('productsSearch')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);color:#db2777;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    </div>
+                                    <span>商品速查</span>
+                                </button>
+                                <button class="module-btn" onclick="switchTab('tasks')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#fee2e2,#fecaca);color:#dc2626;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                    </div>
+                                    <span>任务管理</span>
+                                </button>
+                                <button class="module-btn" onclick="switchTab('campusNews')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#2563eb;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                    </div>
+                                    <span>校园资讯</span>
+                                </button>
+                                <button class="module-btn" onclick="switchTab('newsCategory')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);color:#7c3aed;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg>
+                                    </div>
+                                    <span>资讯分类</span>
+                                </button>
+                                <button class="module-btn" onclick="switchTab('platformNews')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#ffedd5,#fed7aa);color:#ea580c;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                    </div>
+                                    <span>平台动态</span>
+                                </button>
+                                <button class="module-btn" onclick="switchTab('knowledge')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#059669;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                                    </div>
+                                    <span>AI知识库</span>
+                                </button>
+                                <button class="module-btn" onclick="switchTab('sensitiveWords')">
+                                    <div class="module-icon" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);color:#db2777;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                                    </div>
+                                    <span>敏感词管理</span>
+                                </button>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="usersTab">
+                    <div class="page-toolbar">
+                        <div class="filter-dropdowns">
+                            <div class="filter-group">
+                                <span class="filter-label">账号状态：</span>
+                                <select class="filter-select" id="accountStatusFilter" onchange="loadUsers(1)">
+                                    <option value="">全部</option>
+                                    <option value="1">启用</option>
+                                    <option value="0">禁用</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <span class="filter-label">注销状态：</span>
+                                <select class="filter-select" id="isDeleteFilter" onchange="loadUsers(1)">
+                                    <option value="">全部</option>
+                                    <option value="0">未注销</option>
+                                    <option value="1">已注销</option>
+                                </select>
+                            </div>
+                            <button class="reset-btn" onclick="resetUserFilters()">重置</button>
+                        </div>
+                        <div class="search-box-realtime">
+                            <svg class="search-icon-input" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" class="search-input-new" placeholder="输入用户名/邮箱/手机号实时查询..." id="userSearchInput" autocomplete="new-search" readonly onfocus="this.removeAttribute('readonly')" oninput="debounceSearch()">
+                        </div>
+                    </div>
+
+                    <div class="user-list-container" id="usersTable">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <span>加载中...</span>
+                        </div>
+                    </div>
+
+                    <div class="pagination-wrapper" id="userPagination"></div>
+                </div>
+
+                <div class="tab-content" id="adminsTab">
+                    <div class="page-toolbar">
+                        <div class="filter-dropdowns">
+                            <div class="filter-group">
+                                <span class="filter-label">账号状态：</span>
+                                <select class="filter-select" id="adminAccountStatusFilter" onchange="loadAdmins(1)">
+                                    <option value="">全部</option>
+                                    <option value="1">启用</option>
+                                    <option value="0">禁用</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <span class="filter-label">注销状态：</span>
+                                <select class="filter-select" id="adminIsDeleteFilter" onchange="loadAdmins(1)">
+                                    <option value="">全部</option>
+                                    <option value="0">未注销</option>
+                                    <option value="1">已注销</option>
+                                </select>
+                            </div>
+                            <button class="reset-btn" onclick="resetAdminFilters()">重置</button>
+                        </div>
+                        <div class="search-and-action-row">
+                            <div class="search-box-realtime admin-search">
+                                <svg class="search-icon-input" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                <input type="text" class="search-input-new" placeholder="输入用户名/邮箱/手机号实时查询..." id="adminSearchInput" autocomplete="new-search" readonly onfocus="this.removeAttribute('readonly')" oninput="debounceAdminSearch()">
+                            </div>
+                            <button class="btn-primary-new btn-add-admin" onclick="showAddAdminModal()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                新增管理员
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="user-list-container" id="adminsTable">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <span>加载中...</span>
+                        </div>
+                    </div>
+
+                    <div class="pagination-wrapper" id="adminPagination"></div>
+                </div>
+
+                <div class="tab-content" id="tasksTab">
+                    <div class="page-toolbar">
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" data-filter="all" onclick="filterTasks('all')">全部</button>
+                            <button class="filter-tab" data-filter="pending" onclick="filterTasks('pending')">待审核</button>
+                            <button class="filter-tab" data-filter="active" onclick="filterTasks('active')">进行中</button>
+                            <button class="filter-tab" data-filter="completed" onclick="filterTasks('completed')">已完成</button>
+                            <button class="filter-tab danger" data-filter="reported" onclick="filterTasks('reported')">被举报</button>
+                        </div>
+                    </div>
+                    <div class="table-container" id="tasksTable">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <span>加载中...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 商品审核 Tab ========== -->
+                <div class="tab-content" id="productsReviewTab">
+                    <div class="products-review-layout">
+                        <div class="review-panel">
+                            <div class="panel-header">
+                                <div class="panel-header-left">
+                                    <h3>待人工审核</h3>
+                                    <span class="panel-badge" id="manualReviewBadge">0</span>
+                                </div>
+                                <div class="panel-header-right">
+                                    <select class="review-filter-select" id="manualReviewFilter" onchange="loadManualReviewProducts()">
+                                        <option value="-1">待人工待审核</option>
+                                        <option value="-4">人工拦截</option>
+                                    </select>
+                                    <button class="btn-refresh" onclick="loadManualReviewProducts()" title="刷新">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="panel-body" id="manualReviewPanel">
+                                <div class="loading-state"><div class="spinner"></div><span>加载中...</span></div>
+                            </div>
+                        </div>
+                        <div class="review-panel">
+                            <div class="panel-header">
+                                <div class="panel-header-left">
+                                    <h3>待申诉审核</h3>
+                                    <span class="panel-badge" id="appealReviewBadge">0</span>
+                                </div>
+                                <div class="panel-header-right">
+                                    <button class="btn-refresh" onclick="loadAppealReviewProducts()" title="刷新">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="panel-body" id="appealReviewPanel">
+                                <div class="loading-state"><div class="spinner"></div><span>加载中...</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 商品分类 Tab ========== -->
+                <div class="tab-content" id="productsCategoryTab">
+                    <div class="category-manager">
+                        <div class="category-header">
+                            <div class="category-header-left">
+                                <h3>全部可用分类</h3>
+                                <span class="category-count" id="categoryCount">0 个分类</span>
+                            </div>
+                            <button class="btn-primary-new" onclick="openAddCategoryModal()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                新增分类
+                            </button>
+                        </div>
+                        <div class="category-table-container" id="categoryTableContainer">
+                            <div class="loading-state"><div class="spinner"></div><span>加载中...</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 新增/编辑分类弹窗 -->
+                    <div class="modal-overlay" id="categoryFormModal">
+                        <div class="modal-dialog-new" style="max-width:420px;">
+                            <div class="modal-header-new">
+                                <h3 id="categoryFormTitle">新增分类</h3>
+                                <button class="modal-close-new" onclick="closeCategoryFormModal()">&times;</button>
+                            </div>
+                            <div class="modal-body-new">
+                                <div class="form-group-new">
+                                    <label class="form-label-new">分类名称</label>
+                                    <input type="text" class="input-new" id="categoryNameInput" placeholder="请输入分类名称" maxlength="20">
+                                </div>
+                            </div>
+                            <div class="modal-footer-new">
+                                <button class="btn-secondary-new" onclick="closeCategoryFormModal()">取消</button>
+                                <button class="btn-primary-new" id="saveCategoryBtn" onclick="saveCategoryForm()">确认</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ====== 已禁用/已删除分类管理 ====== -->
+                    <div class="category-manager" style="margin-top:20px;">
+                        <div class="category-header">
+                            <div class="category-header-left">
+                                <h3>已禁用 / 已删除分类</h3>
+                                <span class="category-count" id="disCategoryCount">0 个分类</span>
+                            </div>
+                        </div>
+                        <div class="category-table-container" id="disCategoryTableContainer">
+                            <div class="empty-state-new"><span class="empty-icon">📂</span><p class="empty-text">暂无数据</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 商品速查 Tab ========== -->
+                <div class="tab-content" id="productsSearchTab">
+                    <div class="table-wrapper">
+                        <div class="table-toolbar">
+                        </div>
+                        <div style="padding: 16px 20px;">
+                            <div class="search-bar-container" style="display:flex;gap:12px;">
+                                <input type="number" class="form-input" id="quickSearchInput" placeholder="请输入商品ID查询" style="flex:1;">
+                                <button class="btn-primary" onclick="quickSearchProduct()">查询</button>
+                            </div>
+                        </div>
+                        <div class="table-container" id="quickSearchResult" style="max-height: calc(100vh - 260px); overflow-y: auto;">
+                            <div class="empty-state">输入商品ID开始查询</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 校园资讯 Tab ========== -->
+                <div class="tab-content" id="campusNewsTab">
+                    <div class="campus-news-layout">
+                        <!-- ===== 左侧：筛选+列表 ===== -->
+                        <div class="cn-left">
+                            <div class="cn-filter-bar">
+                                <form autocomplete="off" onsubmit="return false;">
+                                <div class="cn-filter-row">
+                                    <select class="cn-filter-select" id="cnCategoryFilter" onchange="cnSearch()">
+                                        <option value="">所有分类</option>
+                                    </select>
+                                    <input type="text" class="cn-filter-input" id="cnKeywordInput" placeholder="搜索标题..." oninput="cnDebounceSearch()">
+                                </div>
+                                <div class="cn-filter-row">
+                                    <select class="cn-filter-select" id="cnStatusFilter" onchange="cnSearch()">
+                                        <option value="1" selected>已启用</option>
+                                        <option value="0">已禁用</option>
+                                    </select>
+                                    <select class="cn-filter-select" id="cnDeletedFilter" onchange="cnSearch()">
+                                        <option value="0" selected>未删除</option>
+                                        <option value="1">已删除</option>
+                                    </select>
+                                    <button class="btn-primary-new cn-search-btn" onclick="cnSearch()">查询</button>
+                                </div>
+                                </form>
+                            </div>
+                            <div class="cn-list-wrap" id="cnListWrap">
+                                <div class="cn-list" id="cnList"></div>
+                                <div class="cn-loading" id="cnLoading"><div class="spinner"></div><span>加载中...</span></div>
+                                <div class="cn-empty" id="cnEmpty" style="display:none;">暂无资讯数据</div>
+                            </div>
+                        </div>
+                        <!-- ===== 右侧：预览+操作 ===== -->
+                        <div class="cn-right">
+                            <div class="cn-preview-area" id="cnPreviewArea">
+                                <div class="cn-preview-placeholder" id="cnPreviewPlaceholder">请选择一条资讯预览</div>
+                                <div class="cn-preview-content" id="cnPreviewContent" style="display:none;">
+                                    <div class="cn-preview-image-wrap">
+                                        <img id="cnPreviewImage" src="" alt="封面图">
+                                    </div>
+                                    <div class="cn-preview-path">
+                                        <span id="cnPreviewPath"></span>
+                                        <button class="cat-btn cat-btn-text" onclick="cnCopyPath()">复制</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cn-actions">
+                                <button class="btn-primary-new" onclick="cnOpenPublishModal()">发布</button>
+                                <button class="btn-action cn-act-btn" id="cnEditBtn" onclick="cnOpenEditModal()" disabled>编辑</button>
+                                <button class="btn-action danger cn-act-btn" id="cnDeleteBtn" onclick="cnDelete()" disabled>删除</button>
+                                <button class="btn-action cn-act-btn" id="cnRestoreBtn" onclick="cnRestore()" disabled>恢复</button>
+                                <button class="btn-action cn-act-btn" id="cnEnableBtn" onclick="cnEnable()" disabled>启用</button>
+                                <button class="btn-action danger cn-act-btn" id="cnDisableBtn" onclick="cnDisable()" disabled>禁用</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 发布/编辑弹窗 -->
+                    <div class="modal-overlay" id="cnFormModal">
+                        <div class="modal-dialog-new" style="max-width:560px;">
+                            <div class="modal-header-new">
+                                <h3 id="cnFormTitle">发布资讯</h3>
+                                <button class="modal-close-new" onclick="cnCloseFormModal()">&times;</button>
+                            </div>
+                            <div class="modal-body-new">
+                                <div class="form-group-new">
+                                    <label class="form-label-new">标题 <span style="color:red;">*</span></label>
+                                    <input type="text" class="input-new" id="cnFormTitleInput" placeholder="请输入标题" maxlength="100">
+                                </div>
+                                <div class="form-group-new">
+                                    <label class="form-label-new">所属分类 <span style="color:red;">*</span></label>
+                                    <select class="select-new" id="cnFormCategory">
+                                        <option value="">请选择分类</option>
+                                    </select>
+                                </div>
+                                <div class="form-group-new">
+                                    <label class="form-label-new">发布者 <span style="color:red;">*</span></label>
+                                    <input type="text" class="input-new" id="cnFormPublisher" placeholder="请输入发布者名称" maxlength="50">
+                                </div>
+                                <div class="form-group-new">
+                                    <label class="form-label-new">封面图片 <span style="color:red;">*</span></label>
+                                    <input type="file" accept="image/*" id="cnFileInput" style="display:none;">
+                                    <div id="cnCoverUploadArea" class="cn-cover-upload" onclick="cnOpenFilePicker()">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                        <span>点击上传封面图片（建议比例 3:4）</span>
+                                    </div>
+                                    <div id="cnCoverPreview" style="display:none; margin-top:8px;"></div>
+                                </div>
+                                <div class="form-group-new">
+                                    <label class="form-label-new">内容 <span style="color:red;">*</span></label>
+                                    <textarea class="textarea-new" id="cnFormContent" rows="6" placeholder="请输入资讯内容"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer-new">
+                                <button class="btn-secondary-new" onclick="cnCloseFormModal()">取消</button>
+                                <button class="btn-primary-new" id="cnFormSubmitBtn" onclick="cnSubmitForm()">发布</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 裁剪弹窗 -->
+                <div class="modal-overlay" id="cnCropModal">
+                    <div class="modal-dialog-new" style="max-width:600px;">
+                        <div class="modal-header-new">
+                            <h3>裁剪封面图片</h3>
+                            <button class="modal-close-new" onclick="cnCancelCrop()">&times;</button>
+                        </div>
+                        <div class="modal-body-new" style="text-align:center;">
+                            <div class="cn-crop-wrapper">
+                                <img id="cnCropImage" src="" alt="裁剪图片">
+                            </div>
+                        </div>
+                        <div class="modal-footer-new">
+                            <button class="btn-secondary-new" onclick="cnCancelCrop()">取消</button>
+                            <button class="btn-primary-new" onclick="cnConfirmCrop()">确认裁剪</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 资讯分类 Tab ========== -->
+                <div class="tab-content" id="newsCategoryTab">
+                    <div class="category-manager">
+                        <div class="category-header">
+                            <div class="category-header-left">
+                                <h3>全部可用分类</h3>
+                                <span class="category-count" id="newsCategoryCount">0 个分类</span>
+                            </div>
+                            <button class="btn-primary-new" onclick="openAddNewsCategoryModal()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                新增分类
+                            </button>
+                        </div>
+                        <div class="category-table-container" id="newsCategoryTableContainer">
+                            <div class="loading-state"><div class="spinner"></div><span>加载中...</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 新增/编辑资讯分类弹窗 -->
+                    <div class="modal-overlay" id="newsCategoryFormModal">
+                        <div class="modal-dialog-new" style="max-width:420px;">
+                            <div class="modal-header-new">
+                                <h3 id="newsCategoryFormTitle">新增分类</h3>
+                                <button class="modal-close-new" onclick="closeNewsCategoryFormModal()">&times;</button>
+                            </div>
+                            <div class="modal-body-new">
+                                <div class="form-group-new">
+                                    <label class="form-label-new">分类名称</label>
+                                    <input type="text" class="input-new" id="newsCategoryNameInput" placeholder="请输入分类名称" maxlength="20">
+                                </div>
+                            </div>
+                            <div class="modal-footer-new">
+                                <button class="btn-secondary-new" onclick="closeNewsCategoryFormModal()">取消</button>
+                                <button class="btn-primary-new" id="saveNewsCategoryBtn" onclick="saveNewsCategoryForm()">确认</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ====== 已禁用/已删除资讯分类管理 ====== -->
+                    <div class="category-manager" style="margin-top:20px;">
+                        <div class="category-header">
+                            <div class="category-header-left">
+                                <h3>已禁用 / 已删除资讯分类</h3>
+                                <span class="category-count" id="newsDisCategoryCount">0 个分类</span>
+                            </div>
+                        </div>
+                        <div class="category-table-container" id="newsDisCategoryTableContainer">
+                            <div class="empty-state-new"><span class="empty-icon">📂</span><p class="empty-text">暂无数据</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 平台动态 Tab ========== -->
+                <div class="tab-content" id="platformNewsTab">
+                    <div class="pn-container">
+                        <!-- 筛选栏 -->
+                        <div class="pn-filter-bar">
+                            <form autocomplete="off" onsubmit="return false;">
+                            <div class="pn-filter-row">
+                                <select class="pn-filter-select" id="pnTypeFilter" onchange="pnSearch()">
+                                    <option value="">全部</option>
+                                    <option value="1">平台公告</option>
+                                    <option value="2">平台动态</option>
+                                </select>
+                                <select class="pn-filter-select" id="pnDeletedFilter" onchange="pnSearch()">
+                                    <option value="">全部</option>
+                                    <option value="0">未删除</option>
+                                    <option value="1">已删除</option>
+                                </select>
+                                <button class="btn-primary-new" onclick="pnOpenPublishModal()">发布公告</button>
+                            </div>
+                            </form>
+                        </div>
+
+                        <!-- 卡片列表 -->
+                        <div class="pn-list-wrap" id="pnListWrap">
+                            <div class="pn-list" id="pnList"></div>
+                            <div class="pn-loading" id="pnLoading" style="display:none;"><div class="spinner"></div><span>加载中...</span></div>
+                            <div class="pn-empty" id="pnEmpty" style="display:none;">暂无数据</div>
+                        </div>
+
+                        <!-- 分页 -->
+                        <div class="pn-pagination" id="pnPagination"></div>
+                    </div>
+
+                    <!-- 发布/编辑弹窗 -->
+                    <div class="modal-overlay" id="pnFormModal">
+                        <div class="modal-dialog-new" style="max-width:520px;">
+                            <div class="modal-header-new">
+                                <h3 id="pnFormTitle">发布公告</h3>
+                                <button class="modal-close-new" onclick="pnCloseFormModal()">&times;</button>
+                            </div>
+                            <div class="modal-body-new">
+                                <div class="form-group-new">
+                                    <label class="form-label-new">发布者 <span style="color:red;">*</span></label>
+                                    <input type="text" class="input-new" id="pnFormPublisher" placeholder="请输入发布者名称" maxlength="50">
+                                </div>
+                                <div class="form-group-new">
+                                    <label class="form-label-new">公告内容 <span style="color:red;">*</span></label>
+                                    <textarea class="textarea-new" id="pnFormContent" rows="6" placeholder="请输入公告内容"></textarea>
+                                </div>
+                                <div class="form-group-new">
+                                    <label class="form-label-new">类型</label>
+                                    <div class="pn-type-radio-group">
+                                        <label class="pn-type-radio" id="pnRadioNotice" onclick="pnSelectType(1)">
+                                            <span class="pn-radio-dot" id="pnRadioDot1"></span>
+                                            <span>平台公告</span>
+                                        </label>
+                                        <label class="pn-type-radio" id="pnRadioDynamic" onclick="pnSelectType(2)">
+                                            <span class="pn-radio-dot" id="pnRadioDot2"></span>
+                                            <span>平台动态</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer-new">
+                                <button class="btn-secondary-new" onclick="pnCloseFormModal()">取消</button>
+                                <button class="btn-primary-new" id="pnFormSubmitBtn" onclick="pnSubmitForm()">发布</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== 敏感词管理 Tab ========== -->
+                <div class="tab-content" id="sensitiveWordsTab">
+                    <div class="sw-page">
+                        <div class="page-toolbar">
+                            <div class="toolbar-left">
+                                <h2 class="section-heading">全部可用敏感词</h2>
+                            </div>
+                            <div class="toolbar-right">
+                                <span class="sw-count" id="swCount">共 0 个词</span>
+                                <button class="btn-secondary-new" id="swReloadBtn" onclick="reloadSensitiveWords()">从文件重载</button>
+                            </div>
+                        </div>
+
+                        <div class="sw-add-bar">
+                            <input type="text" class="sw-input" id="swInput" placeholder="输入新敏感词..." maxlength="50" onkeydown="if(event.key==='Enter')addSensitiveWord()">
+                            <button class="btn-primary-new" id="swAddBtn" onclick="addSensitiveWord()">添加</button>
+                        </div>
+
+                        <div class="sw-list-wrap">
+                            <table class="sw-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:60px;">序号</th>
+                                        <th>敏感词</th>
+                                        <th style="width:120px;">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="swBody">
+                                    <tr><td colspan="3" class="empty-state-td">加载中...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="feedbacksTab">
+                    <div class="page-toolbar" style="margin-bottom:20px;">
+                        <div class="toolbar-left">
+                            <h2 class="section-heading">全部待处理反馈</h2>
+                        </div>
+                        <div class="toolbar-right">
+                            <span class="sw-count" id="feedbackCount">共 0 条</span>
+                        </div>
+                    </div>
+                    <div class="feedback-card-list" id="feedbacksContainer">
+                        <div class="loading-state"><div class="spinner"></div><span>加载中...</span></div>
+                    </div>
+                    <div class="feedback-scroll-loader" id="feedbackLoader" style="display:none;">
+                        <div class="spinner" style="width:20px;height:20px;border-width:2px;"></div>
+                        <span>加载更多...</span>
+                    </div>
+                    <div class="feedback-scroll-end" id="feedbackEnd" style="display:none;">
+                        <span>— 已显示全部反馈 —</span>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="knowledgeTab">
+                    <!-- 统计卡片 -->
+                    <div class="knowledge-stats">
+                        <div class="ks-card">
+                            <div class="ks-icon ks-primary">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            </div>
+                            <div class="ks-data">
+                                <div class="ks-number" id="ksTotalDocs" data-target="0">0</div>
+                                <div class="ks-label">文档总数</div>
+                            </div>
+                        </div>
+                        <div class="ks-card">
+                            <div class="ks-icon ks-secondary">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                            <div class="ks-data">
+                                <div class="ks-number" id="ksTotalChunks" data-target="0">0</div>
+                                <div class="ks-label">总向量分块数</div>
+                            </div>
+                        </div>
+                        <div class="ks-card">
+                            <div class="ks-icon ks-tertiary">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            </div>
+                            <div class="ks-data">
+                                <div class="ks-number" id="ksTotalSize" data-target="0">0 KB</div>
+                                <div class="ks-label">总占用空间</div>
+                            </div>
+                        </div>
+                        <div class="ks-card">
+                            <div class="ks-icon ks-quaternary">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <div class="ks-data">
+                                <div class="ks-number" id="ksIndexStatus" style="font-size:15px;">--</div>
+                                <div class="ks-label">向量索引状态</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 工具栏 -->
+                    <div class="page-toolbar" style="margin-top:20px;">
+                        <div class="toolbar-left">
+                            <div class="search-box" style="max-width:240px;">
+                                <svg class="search-icon-input" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                <input type="text" class="search-input-new" placeholder="搜索文件名..." id="knowledgeSearchInput" onkeyup="if(event.key==='Enter')loadKnowledgeDocuments()">
+                            </div>
+                            <select class="select-new" id="knowledgeTypeFilter" onchange="loadKnowledgeDocuments()" style="width:130px;">
+                                <option value="">全部类型</option>
+                                <option value=".txt">TXT</option>
+                                <option value=".pdf">PDF</option>
+                                <option value=".docx">DOCX</option>
+                                <option value=".md">MD</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-right">
+                            <button class="kf-clear-all-btn" onclick="clearAllKnowledgeDocs()">清空知识库</button>
+                            <button class="btn-primary-new" onclick="openKnowledgeUpload()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                上传文档
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 文档列表 -->
+                    <div class="knowledge-content">
+                        <div class="table-container" id="knowledgeTable" style="min-height:300px;">
+                            <div class="loading-state"><div class="spinner"></div><span>加载中...</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="banUserModal">
+        <div class="modal-dialog-new">
+            <div class="modal-header-new">
+                <h3>禁用用户</h3>
+                <button class="modal-close-new" onclick="closeModal('banUserModal')">×</button>
+            </div>
+            <div class="modal-body-new">
+                <div class="form-group-new">
+                    <label class="form-label-new">禁用时间</label>
+                    <select class="select-new" id="banDays">
+                        <option value="0">永久禁用</option>
+                        <option value="1">禁用 1 天</option>
+                        <option value="3">禁用 3 天</option>
+                        <option value="7">禁用 7 天（一周）</option>
+                        <option value="15">禁用 15 天（半个月）</option>
+                        <option value="30" selected>禁用 30 天（一个月）</option>
+                        <option value="90">禁用 90 天（三个月）</option>
+                    </select>
+                </div>
+                <div class="form-group-new">
+                    <label class="form-label-new">禁用原因 <span style="color: #dc2626;">*</span></label>
+                    <textarea class="textarea-new" id="banReason" placeholder="请输入禁用原因..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer-new">
+                <button class="btn-secondary-new" onclick="closeModal('banUserModal')">取消</button>
+                <button class="btn-danger-new" onclick="confirmBanUser()">确认禁用</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addAdminModal">
+        <div class="modal-dialog-new">
+            <div class="modal-header-new">
+                <h3>新增管理员</h3>
+                <button class="modal-close-new" onclick="closeModal('addAdminModal')">×</button>
+            </div>
+            <div class="modal-body-new">
+                <div class="form-group-new">
+                    <label class="form-label-new">用户名</label>
+                    <input type="text" class="input-new" id="newAdminUsername" placeholder="请输入用户名（3-20位字母数字下划线）">
+                </div>
+                <div class="form-group-new">
+                    <label class="form-label-new">初始密码</label>
+                    <input type="password" class="input-new" id="newAdminPassword" placeholder="请输入初始密码（6-20位）">
+                </div>
+                <div class="form-group-new">
+                    <label class="form-label-new">手机号</label>
+                    <input type="tel" class="input-new" id="newAdminPhone" placeholder="请输入手机号">
+                </div>
+                <div class="form-group-new">
+                    <label class="form-label-new">邮箱</label>
+                    <div class="email-code-group">
+                        <input type="email" class="input-new email-input" id="newAdminEmail" placeholder="仅支持QQ邮箱（如123456@qq.com）">
+                        <button type="button" class="send-code-btn" id="sendCodeBtn" onclick="sendEmailCode()">发送验证码</button>
+                    </div>
+                </div>
+                <div class="form-group-new">
+                    <label class="form-label-new">验证码</label>
+                    <input type="text" class="input-new" id="newAdminEmailCode" placeholder="请输入6位验证码" maxlength="6">
+                </div>
+            </div>
+            <div class="modal-footer-new">
+                <button class="btn-secondary-new" onclick="closeModal('addAdminModal')">取消</button>
+                <button class="btn-primary-new" onclick="confirmAddAdmin()">确认添加</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="adjustCreditModal">
+        <div class="modal-dialog-new">
+            <div class="modal-header-new">
+                <h3>调整信誉分</h3>
+                <button class="modal-close-new" onclick="closeModal('adjustCreditModal')">×</button>
+            </div>
+            <div class="modal-body-new">
+                <div class="form-group-new">
+                    <label class="form-label-new">调整值</label>
+                    <div class="credit-adjust-group-new">
+                        <button class="adjust-btn-new minus" onclick="adjustCreditValue(-10)">-10</button>
+                        <button class="adjust-btn-new minus" onclick="adjustCreditValue(-1)">-1</button>
+                        <input type="number" class="input-new credit-input-new" id="creditAdjustValue" value="0">
+                        <button class="adjust-btn-new plus" onclick="adjustCreditValue(1)">+1</button>
+                        <button class="adjust-btn-new plus" onclick="adjustCreditValue(10)">+10</button>
+                    </div>
+                </div>
+                <div class="form-group-new">
+                    <label class="form-label-new">调整原因（必填）</label>
+                    <textarea class="textarea-new" id="creditReason" placeholder="请输入调整原因..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer-new">
+                <button class="btn-secondary-new" onclick="closeModal('adjustCreditModal')">取消</button>
+                <button class="btn-primary-new" onclick="confirmAdjustCredit()">确认调整</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：禁用商品 -->
+    <div class="modal-overlay" id="disableProductModal">
+        <div class="modal-dialog-new">
+            <div class="modal-header-new">
+                <h3>禁用商品</h3>
+                <button class="modal-close-new" onclick="closeModal('disableProductModal')">×</button>
+            </div>
+            <div class="modal-body-new">
+                <div class="form-group-new">
+                    <label class="form-label-new">禁用原因 <span style="color: #dc2626;">*</span></label>
+                    <textarea class="textarea-new" id="disableProductReason" placeholder="请输入禁用原因..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer-new">
+                <button class="btn-secondary-new" onclick="closeModal('disableProductModal')">取消</button>
+                <button class="btn-danger-new" onclick="confirmDisableProduct()">确认禁用</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：审核驳回 -->
+    <div class="modal-overlay" id="reviewRejectModal">
+        <div class="modal-dialog-new review-reject-dialog">
+            <div class="modal-header-new">
+                <h3 id="reviewRejectModalTitle">驳回原因</h3>
+                <button class="modal-close-new" onclick="closeModal('reviewRejectModal')">×</button>
+            </div>
+            <div class="modal-body-new">
+                <div class="form-group-new">
+                    <label class="form-label-new">驳回原因 <span style="color: #dc2626;">*</span></label>
+                    <textarea class="textarea-new review-reject-textarea" id="reviewRejectReason" placeholder="请输入驳回原因..." oninput="toggleRejectBtn()"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer-new">
+                <button class="btn-secondary-new" onclick="closeModal('reviewRejectModal')">取消</button>
+                <button class="btn-danger-new" id="reviewRejectConfirmBtn" onclick="confirmRejectReview()" disabled>确认驳回</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：商品详情 -->
+    <div class="modal-overlay" id="productDetailModal">
+        <div class="modal-dialog-new product-detail-dialog">
+            <div class="modal-header-new">
+                <h3>商品详情</h3>
+                <button class="modal-close-new" onclick="closeModal('productDetailModal')">×</button>
+            </div>
+            <div class="modal-body-new" id="productDetailBody">
+                <div class="loading-state"><div class="spinner"></div><span>加载中...</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：申诉内容 -->
+    <div class="modal-overlay" id="appealContentModal">
+        <div class="modal-dialog-new" style="max-width:460px;">
+            <div class="modal-header-new">
+                <h3>申诉内容</h3>
+                <button class="modal-close-new" onclick="closeModal('appealContentModal')">×</button>
+            </div>
+            <div class="modal-body-new">
+                <div id="appealContentDisplay" style="font-size:14px;color:#334155;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:600px;overflow-y:auto;min-height:80px;"></div>
+            </div>
+            <div class="modal-footer-new">
+                <button class="btn-secondary-new" onclick="closeModal('appealContentModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：删除敏感词确认 -->
+    <div class="modal-overlay" id="swDeleteModal">
+        <div class="modal-dialog-new" style="max-width:400px;">
+            <div class="modal-header-new">
+                <h3>确认删除</h3>
+                <button class="modal-close-new" onclick="closeModal('swDeleteModal')">×</button>
+            </div>
+            <div class="modal-body-new">
+                <p style="font-size:14px;color:#334155;margin:0;">确定要删除该敏感词吗？</p>
+            </div>
+            <div class="modal-footer-new">
+                <button class="btn-secondary-new" onclick="closeModal('swDeleteModal')">取消</button>
+                <button class="btn-danger-new" id="swDeleteConfirmBtn" onclick="confirmDeleteSensitiveWord()">确定删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：商品分类管理 -->
+    <div class="modal-overlay" id="categoryManageModal">
+        <div class="modal-dialog-new category-manage-dialog">
+            <div class="modal-header-new">
+                <h3>📂 商品分类管理</h3>
+                <button class="modal-close-new" onclick="closeModal('categoryManageModal')">×</button>
+            </div>
+            <div class="modal-body-new category-manage-body">
+                <!-- 新增分类 -->
+                <div class="category-add-bar">
+                    <input type="text" class="input-new category-add-input" id="newCategoryName" placeholder="输入新分类名称...">
+                    <button class="btn-primary-new btn-sm" onclick="addCategory()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        新增
+                    </button>
+                </div>
+                <!-- 分类列表 -->
+                <div class="category-table-wrap" id="categoryTableBody">
+                    <div class="loading-state"><div class="spinner"></div><span>加载中...</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-notification" id="toast">
+        <span class="toast-icon-new"></span>
+        <span class="toast-message-new"></span>
+    </div>
+
+    <!-- 知识库上传弹窗 -->
+    <div class="modal-overlay" id="knowledgeUploadModal">
+        <div class="modal-dialog-new" style="max-width:540px;">
+            <div class="modal-header-new">
+                <h3>上传知识库文档</h3>
+                <button class="modal-close-new" onclick="closeKnowledgeUpload()">×</button>
+            </div>
+            <div class="modal-body-new">
+                <div class="upload-dropzone" id="knowledgeDropzone">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <p class="upload-dropzone-text">点击选择或拖拽文件到此处</p>
+                    <p class="upload-dropzone-hint">支持 TXT / PDF / DOCX / MD 格式，单个文件最大 10MB</p>
+                </div>
+                <input type="file" id="knowledgeFileInput" accept=".txt,.pdf,.docx,.md" multiple style="display:none" onchange="onKnowledgeFilesSelected(this)">
+
+                <!-- 文件队列 -->
+                <div class="upload-file-queue" id="knowledgeFileQueue" style="display:none;"></div>
+
+                <!-- 上传进度 -->
+                <div class="upload-progress-area" id="knowledgeUploadProgress" style="display:none;">
+                    <div class="upload-progress-bar-track">
+                        <div class="upload-progress-bar-fill" id="uploadProgressFill" style="width:0%;"></div>
+                    </div>
+                    <div class="upload-progress-text" id="uploadProgressText">准备上传...</div>
+                    <div class="upload-progress-status" id="uploadProgressStatus"></div>
+                </div>
+            </div>
+            <div class="modal-footer-new">
+                <button class="btn-secondary-new" onclick="closeKnowledgeUpload()" id="knowledgeUploadCancel">取消</button>
+                <button class="btn-primary-new" id="knowledgeUploadBtn" onclick="confirmKnowledgeUpload()" disabled>上传（0 个文件）</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用确认弹窗 -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-dialog-new" style="max-width:420px;">
+            <div class="modal-header-new">
+                <h3 id="confirmModalTitle">确认</h3>
+                <button class="modal-close-new" onclick="closeModal('confirmModal')">×</button>
+            </div>
+            <div class="modal-body-new">
+                <p id="confirmModalBody" style="font-size:14px;color:#475569;line-height:1.6;"></p>
+            </div>
+            <div class="modal-footer-new">
+                <button class="btn-secondary-new" id="confirmModalCancel">取消</button>
+                <button class="btn-danger-new" id="confirmModalConfirm">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文档预览弹窗 -->
+    <div class="modal-overlay" id="knowledgePreviewModal">
+        <div class="modal-dialog-new" style="max-width:520px;">
+            <div class="modal-header-new">
+                <h3>文档详情</h3>
+                <button class="modal-close-new" onclick="closeModal('knowledgePreviewModal')">×</button>
+            </div>
+            <div class="modal-body-new" id="knowledgePreviewBody">
+                <div class="preview-loading">加载中...</div>
+            </div>
+            <div class="modal-footer-new">
+                <button class="btn-secondary-new" onclick="closeModal('knowledgePreviewModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/admin.js"></script>
+
+    <!-- 优雅下线过渡界面 -->
+    <div class="elegant-logout-overlay" id="elegantLogoutOverlay">
+        <div class="elegant-logout-container">
+            <div class="logout-icon-wrapper">
+                <div class="logout-icon">🔒</div>
+                <div class="pulse-ring"></div>
+            </div>
+            
+            <h2 class="logout-title" id="logoutTitle">账号状态异常</h2>
+            <p class="logout-message" id="logoutMessage">您的账号状态发生变更，需要重新登录</p>
+            
+            <div class="countdown-section">
+                <div class="countdown-bar">
+                    <div class="countdown-progress" id="countdownProgress"></div>
+                </div>
+                <span class="countdown-text">
+                    <span id="countdownNumber">5</span> 秒后自动跳转到登录页...
+                </span>
+            </div>
+
+            <button class="btn-immediate-login" onclick="immediateRedirectToLogin()">
+                立即重新登录 →
+            </button>
+        </div>
+    </div>
+
+    <!-- 全屏图片查看器 -->
+    <div class="img-viewer-overlay" id="imgViewerOverlay" onclick="closeImageViewer()">
+        <div class="img-viewer-container" onclick="event.stopPropagation()">
+            <button class="img-viewer-close" onclick="closeImageViewer()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+            <div class="img-viewer-top-bar">
+                <span class="img-viewer-counter" id="imgViewerCounter">1/1</span>
+                <div class="img-viewer-zoom-actions">
+                    <button class="img-viewer-zoom-btn" onclick="zoomImgViewer(-0.25)" title="缩小">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                    </button>
+                    <button class="img-viewer-zoom-btn" onclick="resetImgViewerZoom()" title="重置">1:1</button>
+                    <button class="img-viewer-zoom-btn" onclick="zoomImgViewer(0.25)" title="放大">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/></svg>
+                    </button>
+                </div>
+            </div>
+            <button class="img-viewer-nav img-viewer-nav-prev" id="imgViewerPrev" onclick="event.stopPropagation();navigateImgViewer(-1)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button class="img-viewer-nav img-viewer-nav-next" id="imgViewerNext" onclick="event.stopPropagation();navigateImgViewer(1)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+            <div class="img-viewer-image-wrap" id="imgViewerWrap">
+                <img id="imgViewerImage" src="" alt="查看图片" draggable="false">
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

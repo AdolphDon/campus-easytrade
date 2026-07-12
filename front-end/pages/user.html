@@ -1,0 +1,3094 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校易帮 - 用户端</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .page-content.active#fleamarketPage { padding: 0; overflow: hidden; margin: -12px -24px -24px; height: calc(100% + 36px); }
+        #fleamarketContainer { width: 100%; height: 100%; position: relative; }
+        #amapContainer { width: 100%; height: 100%; }
+        .fleamarket-panel { position: absolute; top: 16px; left: 16px; z-index: 350;
+            background: rgba(255,255,255,0.95); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            padding: 16px; width: 320px; backdrop-filter: blur(8px); }
+        .fleamarket-panel .panel-row { margin-bottom: 10px; }
+        .fleamarket-panel .panel-row:last-child { margin-bottom: 0; }
+        .fleamarket-panel .school-display-box { background: #f5f5f5; border-radius: 8px; padding: 12px 14px; }
+        .fleamarket-panel .school-display-box span { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+        .fleamarket-panel .btn-row { display: flex; gap: 8px; }
+        .fleamarket-panel .btn-row button { flex: 1; padding: 7px 0; font-size: 13px; border: none;
+            border-radius: 6px; cursor: pointer; color: #fff; transition: opacity 0.2s; }
+        .fleamarket-panel .btn-row button:hover { opacity: 0.85; }
+        .fleamarket-panel .btn-back { background: #4a90d9; }
+        .fleamarket-panel .btn-locate { background: #34b233; }
+        .fleamarket-panel .btn-confirm { background: var(--primary); }
+        .fleamarket-panel .btn-confirmed { background: #52c41a; cursor: default; opacity: 0.85; }
+        .fleamarket-panel .btn-row button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .fleamarket-panel .status-text { font-size: 12px; color: #999; margin-top: 4px; }
+        .fleamarket-panel .geo-info { font-size: 11px; color: #aaa; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fleamarket-panel .geo-detail { margin-top: 0; font-size: 10px; color: #bbb; }
+        #fmPin { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); z-index: 500; pointer-events: none; }
+        #fmPin .pin-shadow { position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 14px; height: 4px; background: rgba(0,0,0,0.15); border-radius: 50%; }
+        #fmPin .pin-body { width: 28px; height: 28px; background: var(--primary); border: 3px solid #fff; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+        #fmPin .pin-dot { position: absolute; top: 7px; left: 50%; transform: translateX(-50%); width: 8px; height: 8px; background: #fff; border-radius: 50%; }
+        .amap-logo { display: none !important; }
+        .amap-copyright { display: none !important; }
+        .fleamarket-copyright { position: absolute; bottom: 8px; right: 12px; z-index: 999;
+            font-size: 11px; color: rgba(255,255,255,0.7); text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            pointer-events: none; }
+        @media (max-width: 600px) {
+            .fleamarket-panel { top: 8px; left: 8px; right: 8px; width: auto; padding: 12px; }
+        }
+
+        /* ===== 确认订单 - 固定布局 ===== */
+        .page-content.active#confirmOrderPage { display: flex; flex-direction: column; overflow: hidden; }
+        #confirmOrderPage .co-page { max-width: 1440px; margin: 0 auto; padding: 4px 24px 8px; width: 100%; box-sizing: border-box; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+        #confirmOrderPage .co-top-bar { flex-shrink: 0; display: flex; align-items: center; margin-bottom: 0; }
+        .co-back-btn { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #666; cursor: pointer; font-size: 13px; padding: 4px 8px; border-radius: 6px; transition: all 0.2s; }
+        .co-back-btn:hover { background: #f5f5f5; color: #FF7D00; }
+
+        /* ===== 步骤条 ===== */
+        #confirmOrderPage .co-steps, #cartPage .cart-steps { display: flex; align-items: center; flex: 1; }
+        #confirmOrderPage .co-steps { justify-content: flex-start; margin-left: 160px; }
+        #cartPage .cart-steps { justify-content: flex-start; margin-left: 221px; }
+        #cartPage .cart-top-bar { display: flex; align-items: center; flex-shrink: 0; padding: 4px 24px 8px; }
+        #cartPage .cart-top-bar h2 { font-size: 20px; font-weight: 600; margin: 0; white-space: nowrap; }
+        .co-step { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .co-step-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; background: #F5F5F5; color: #999; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+        .co-step.active .co-step-dot { background: #FF7D00; color: #fff; }
+        .co-step.current .co-step-dot { box-shadow: 0 2px 8px rgba(255,125,0,0.25); }
+        .co-step-label { font-size: 12px; font-weight: 500; color: #999; white-space: nowrap; }
+        .co-step.current .co-step-label { color: #FF7D00; }
+        .co-step-line { width: 100px; height: 2px; background: #F5F5F5; margin: 0 10px 18px; transition: background 0.3s; }
+        .co-step-line.active { background: #FF7D00; }
+
+        /* ===== 主体布局 ===== */
+        #confirmOrderPage .co-body { display: flex; gap: 16px; flex: 1; min-height: 0; }
+        #confirmOrderPage .co-left { width: 70%; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+        #confirmOrderPage .co-right { width: 30%; min-width: 0; display: flex; flex-direction: column; margin-top: -53px; }
+        #confirmOrderPage .co-right-inner { display: flex; flex-direction: column; gap: 6px; position: sticky; top: 20px; }
+        /* 左侧商品卡片撑满剩余空间，内部滚动 */
+        #confirmOrderPage .co-left > .co-card:last-child { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 0; }
+        #confirmOrderPage .co-left > .co-card:last-child .co-card-header { flex-shrink: 0; margin-bottom: 0; padding: 0 0 8px; }
+        #coItemsContainer { overflow-y: auto; flex: 1; min-height: 0; padding: 0 0 16px; }
+        #coItemsContainer::-webkit-scrollbar { width: 4px; }
+        #coItemsContainer::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+        /* ===== 卡片通用 ===== */
+        #confirmOrderPage .co-card { background: #fff; border-radius: 12px; padding: 12px 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+        #confirmOrderPage .co-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .co-card-title { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; color: #333; }
+        .co-card-title .co-icon { width: 16px; height: 16px; color: #FF7D00; flex-shrink: 0; }
+        .co-card-sub { font-size: 12px; color: #999; }
+
+        /* ===== 收货地址 ===== */
+        .co-addr-list { display: flex; flex-direction: column; gap: 10px; }
+        .co-addr-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1.5px solid #eee; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+        .co-addr-item:hover { border-color: #FF7D00; }
+        .co-addr-item.selected { border-color: #FF7D00; background: rgba(255,125,0,0.03); }
+        .co-addr-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #d0d0d0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+        .co-addr-item.selected .co-addr-radio { border-color: #FF7D00; }
+        .co-addr-radio-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF7D00; display: none; }
+        .co-addr-item.selected .co-addr-radio-dot { display: block; }
+        .co-addr-info { flex: 1; min-width: 0; }
+        .co-addr-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+        .co-addr-name { font-size: 15px; font-weight: 600; color: #333; }
+        .co-addr-phone { font-size: 13px; color: #666; }
+        .co-addr-tag { font-size: 11px; background: rgba(255,125,0,0.1); color: #FF7D00; padding: 1px 8px; border-radius: 4px; font-weight: 500; }
+        .co-addr-detail { font-size: 13px; color: #888; line-height: 1.4; }
+        .co-addr-actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .co-addr-actions button { background: none; border: none; color: #666; cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 4px; transition: all 0.2s; }
+        .co-addr-actions button:hover { background: #f5f5f5; color: #FF7D00; }
+        .co-addr-actions .del-btn:hover { color: #FF4D4F; }
+        .co-add-addr-btn { background: #fff; border: 1px solid #FF7D00; color: #FF7D00; cursor: pointer; font-size: 13px; padding: 5px 14px; border-radius: 8px; transition: all 0.2s; white-space: nowrap; }
+        .co-add-addr-btn:hover { background: #FFF7F0; }
+
+        /* 自提商品-卖家地址 */
+        .co-pickup-list { height: 180px; overflow-y: auto; overflow-x: hidden; }
+        .co-pickup-list::-webkit-scrollbar { width: 4px; }
+        .co-pickup-list::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+        .co-pickup-list::-webkit-scrollbar-track { background: transparent; }
+        .co-pickup-item { display: flex; flex-direction: column; gap: 3px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .co-pickup-item:last-child { border-bottom: none; }
+        .co-pickup-goods { font-size: 13px; font-weight: 500; color: #333; }
+        .co-pickup-addr { font-size: 12px; color: #888; line-height: 1.4; }
+        .co-pickup-contact { font-size: 12px; color: #666; }
+
+        /* 收货地址 - 单条显示 */
+        .co-addr-display { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; gap: 12px; }
+        .co-addr-display .co-addr-info { flex: 1; min-width: 0; }
+        .co-addr-display .co-addr-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+        .co-addr-display .co-addr-name { font-size: 15px; font-weight: 600; color: #333; }
+        .co-addr-display .co-addr-phone { font-size: 13px; color: #666; }
+        .co-addr-display .co-addr-detail { font-size: 13px; color: #888; line-height: 1.4; }
+        .co-change-addr-btn { flex-shrink: 0; background: #fff; border: 1px solid #FF7D00; color: #FF7D00; cursor: pointer; font-size: 13px; padding: 6px 14px; border-radius: 8px; transition: all 0.2s; white-space: nowrap; }
+        .co-change-addr-btn:hover { background: #FFF7F0; }
+
+        /* 地址选择器 */
+        #coAddrPickerList { max-height: 205px; overflow-y: auto; }
+        .co-picker-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F0F0F0; cursor: pointer; transition: all 0.2s; }
+        .co-picker-item:hover { opacity: 0.8; }
+        .co-picker-item:last-child { border-bottom: none; }
+        .co-picker-info { flex: 1; min-width: 0; }
+        .co-picker-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+        .co-picker-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d0d0d0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+        .co-picker-radio.selected { border-color: #FF7D00; }
+        .co-picker-radio .pay-radio-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF7D00; display: none; }
+        .co-picker-radio.selected .pay-radio-dot { display: block; }
+
+        /* ===== 商品 ===== */
+        .co-seller-group { border-bottom: 1px solid #f0f0f0; padding-bottom: 16px; margin-bottom: 16px; }
+        .co-seller-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .co-seller-header { display: grid; grid-template-columns: 1fr 100px 80px 80px 80px; gap: 12px; align-items: center; padding: 4px 0 8px; background: none; border-radius: 0; margin-bottom: 0; }
+        .co-seller-info { display: flex; align-items: center; gap: 6px; }
+        .co-seller-avatar { width: 22px; height: 22px; border-radius: 50%; background: #f0f0f0; flex-shrink: 0; object-fit: cover; }
+        .co-seller-avatar-placeholder { width: 22px; height: 22px; border-radius: 50%; background: #FF7D00; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+        .co-seller-name { font-size: 12px; color: #999; font-weight: 400; }
+
+        /* 商品列表表头 */
+        .co-items-header {
+            display: grid;
+            grid-template-columns: 1fr 100px 80px 80px 80px;
+            gap: 12px;
+            padding: 8px 0;
+            background: #f5f7fa;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .co-th { font-size: 12px; color: #888; font-weight: 500; }
+        .co-th:nth-child(1) { text-align: left; }
+        .co-th:nth-child(2) { text-align: right; }
+        .co-th:nth-child(3) { text-align: center; }
+        .co-th:nth-child(4) { text-align: center; }
+        .co-th:nth-child(5) { text-align: center; }
+
+        /* 商品行 - 网格布局 */
+        .co-order-item {
+            display: grid;
+            grid-template-columns: 1fr 100px 80px 80px 80px;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #F0F0F0;
+        }
+        .co-order-item:last-child { border-bottom: none; }
+
+        /* 商品信息列 */
+        .co-item-info-col { display: flex; align-items: center; gap: 12px; }
+        .co-item-img { width: 60px; height: 60px; border-radius: 8px; flex-shrink: 0; background: #f5f5f5; object-fit: cover; border: 1px solid #f0f0f0; }
+        .co-img-placeholder { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f5f5f5; color: #bbb; font-size: 11px; text-align: center; border-radius: 8px; flex-shrink: 0; }
+        .co-item-name { font-size: 14px; font-weight: 500; color: #333; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+
+        /* 单价列 */
+        .co-item-price-col { text-align: right; font-size: 14px; color: #666; }
+
+        /* 数量列 */
+        .co-item-qty-col { display: flex; align-items: center; justify-content: center; }
+        .co-qty-num { font-size: 14px; font-weight: 500; min-width: 20px; text-align: center; }
+        .co-item-sub-col { text-align: center; font-size: 14px; font-weight: 600; color: #f97316; }
+        .co-item-trade-col { text-align: center; font-size: 13px; font-weight: 500; color: #f97316; }
+
+
+        /* ===== 订单结算 ===== */
+        .co-summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #666; margin-bottom: 12px; }
+        .co-price { font-weight: 600; color: #FF4D4F; }
+        .co-price-free { color: #07C160; font-weight: 400; }
+        .co-summary-total { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 700; color: #333; padding-top: 12px; margin-top: 4px; border-top: 1px solid #F0F0F0; }
+        .co-price-total { font-size: 20px; font-weight: 700; color: #FF7D00; }
+
+        /* ===== 支付方式 / 发票 ===== */
+        .co-pay-group { display: flex; flex-direction: column; gap: 8px; }
+        .co-pay-opt { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .co-pay-opt:hover { background: #F9F9F9; }
+        .co-pay-opt.selected { background: rgba(255,125,0,0.04); }
+        .co-pay-opt .pay-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #d0d0d0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+        .co-pay-opt.selected .pay-radio { border-color: #FF7D00; }
+        .co-pay-opt .pay-radio-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF7D00; display: none; }
+        .co-pay-opt.selected .pay-radio-dot { display: block; }
+        .co-pay-opt .pay-icon { width: 20px; height: 20px; flex-shrink: 0; }
+        .co-pay-opt .pay-label { font-size: 14px; color: #333; }
+
+        /* ===== 提交按钮 ===== */
+        .co-submit-btn { width: 100%; height: 44px; font-size: 16px; border-radius: 12px; border: none; background: #FF7D00; color: #fff; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+        .co-submit-btn:hover { background: #e66d00; }
+        .co-submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .co-btn-group { display: flex; gap: 12px; margin-top: 10px; }
+        .co-btn-group .co-submit-btn { flex: 1; }
+        .co-btn-secondary { background: #fff; color: #FF7D00; border: 2px solid #FF7D00; }
+        .co-btn-secondary:hover { background: #fff3e6; }
+
+        /* ===== 空状态 ===== */
+        #confirmOrderPage .co-empty { text-align: center; padding: 40px 0; color: #666; font-size: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        #confirmOrderPage .co-empty svg { width: 48px; height: 48px; color: #ccc; }
+        /* 收货地址空状态 - 与有地址时卡片大小统一 */
+        #confirmOrderPage .co-card:has(#coAddrList > .co-empty) { padding: 12px 16px; }
+        #confirmOrderPage .co-card:has(#coAddrList > .co-empty) .co-card-header { margin-bottom: 6px; }
+        #confirmOrderPage #coAddrList:has(.co-empty) { gap: 0; }
+        #confirmOrderPage #coAddrList:has(.co-empty) .co-empty { padding: 4px 0; gap: 4px; font-size: 13px; }
+        #confirmOrderPage #coAddrList:has(.co-empty) .co-empty svg { width: 20px; height: 20px; }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1024px) {
+            #confirmOrderPage .co-body { flex-direction: column; }
+            #confirmOrderPage .co-left { width: 100%; }
+            #confirmOrderPage .co-right { width: 100%; margin-top: 0; }
+            #confirmOrderPage .co-right-inner { gap: 12px; }
+            .co-step-line { width: 60px; }
+            #confirmOrderPage .co-left > .co-card:last-child { flex: none; padding-bottom: 24px; }
+            #coItemsContainer { overflow-y: visible; flex: none; padding-bottom: 0; }
+        }
+        @media (max-width: 768px) {
+            #confirmOrderPage .co-page { padding: 12px 16px 32px; }
+            .co-step-dot { width: 32px; height: 32px; font-size: 13px; }
+            .co-step-line { width: 40px; margin: 0 5px 24px; }
+            .co-step-label { font-size: 12px; }
+            #confirmOrderPage .co-card { padding: 16px; }
+            .co-item-img { width: 50px; height: 50px; }
+            .co-img-placeholder { width: 50px; height: 50px; font-size: 10px; }
+            .co-item-name { font-size: 13px; }
+            #confirmOrderPage .co-body { gap: 12px; }
+            .co-addr-item { padding: 12px; }
+        }
+
+        /* ===== 地址弹窗 ===== */
+        .co-addr-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .co-addr-dialog { background: #fff; border-radius: 12px; padding: 24px; width: 480px; max-width: 90vw; box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
+        .co-addr-dialog h3 { margin: 0 0 16px; font-size: 16px; }
+        .co-addr-dialog .form-group { margin-bottom: 14px; }
+        .co-addr-dialog .form-group label { display: block; font-size: 13px; color: #333; margin-bottom: 4px; font-weight: 500; }
+        .co-addr-dialog .form-group input, .co-addr-dialog .form-group select { width: 100%; padding: 8px 12px; border: 1.5px solid #d0d0d0; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; }
+        .co-addr-dialog .form-group input:focus, .co-addr-dialog .form-group select:focus { border-color: #FF7D00; }
+        .co-dialog-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .co-dialog-footer button { padding: 8px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; }
+        .co-dialog-footer .btn-cancel { background: #f0f0f0; color: #666; }
+        .co-dialog-footer .btn-cancel:hover { background: #e0e0e0; }
+        .co-dialog-footer .btn-save { background: #FF7D00; color: #fff; }
+        .co-dialog-footer .btn-save:hover { background: #e66d00; }
+        .co-dialog-footer .btn-save:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* ===== 支付弹窗 ===== */
+        #payOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 3000; display: none; align-items: center; justify-content: center; }
+        #payModal { background: #fff; border-radius: 16px; padding: 32px; width: 380px; max-width: 90vw; text-align: center; box-shadow: 0 12px 40px rgba(0,0,0,0.2); }
+        #payModal { position: relative; }
+        #payCloseBtn { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 24px; color: #999; cursor: pointer; line-height: 1; padding: 4px; transition: color 0.2s; }
+        #payCloseBtn:hover { color: #333; }
+        #payModal h3 { margin: 0 0 4px; font-size: 17px; color: #222; }
+        #payModal .pay-subtitle { font-size: 12px; color: #999; margin-bottom: 20px; }
+        #payQrContainer { width: 200px; height: 200px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; background: #f8f8f8; border-radius: 12px; padding: 10px; }
+        #payQrContainer img { width: 200px; height: 200px; }
+        #payAmount { font-size: 28px; font-weight: 700; color: #222; }
+        #payAmount::before { content: ''; }
+        .pay-order-info { font-size: 13px; color: #888; margin: 4px 0 12px; }
+        .pay-status-text { font-size: 14px; color: #666; margin: 8px 0 16px; }
+        .pay-status-success { color: #07C160; }
+        .pay-status-cancelled { color: #999; }
+        .pay-modal-actions { display: flex; gap: 12px; justify-content: center; }
+        .pay-modal-actions button { padding: 10px 28px; border-radius: 10px; border: none; font-size: 14px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+        #payCancelBtn { background: #f5f5f5; color: #666; }
+        #payCancelBtn:hover { background: #e8e8e8; }
+        #paySuccessBtn { background: #07C160; color: #fff; display: none; }
+        #paySuccessBtn:hover { background: #06ad56; }
+        .pay-loading { display: inline-block; width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #FF7D00; border-radius: 50%; animation: pay-spin 0.8s linear infinite; margin-right: 6px; vertical-align: middle; }
+        @keyframes pay-spin { to { transform: rotate(360deg); } }
+        @media (max-width: 480px) {
+            #payModal { padding: 24px 20px; }
+            #payQrContainer { width: 160px; height: 160px; }
+            #payQrContainer canvas, #payQrContainer img { width: 160px; height: 160px; }
+            #payAmount { font-size: 24px; }
+        }
+
+        /* ===== 交易订单双层标签 ===== */
+        .order-trade-tabs { flex-shrink: 0; padding: 0 16px; }
+        .order-main-tabs { display: flex; gap: 0; margin-bottom: 8px; background: #f5f5f5; border-radius: 8px; padding: 3px; }
+        .order-main-tab { flex: 1; padding: 7px 0; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; background: transparent; color: #666; transition: all 0.2s; }
+        .order-main-tab.active { background: #fff; color: #FF7D00; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .order-main-tab:hover { color: #FF7D00; }
+        .order-sub-tabs { display: flex; gap: 4px; overflow-x: auto; overflow-y: hidden; min-width: 0; width: 100%; padding: 0 0 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; }
+        .order-sub-tabs::-webkit-scrollbar { display: none; width: 0; height: 0; }
+        .order-sub-tabs:hover { scrollbar-width: thin; scrollbar-color: #ddd transparent; }
+        .order-sub-tabs:hover::-webkit-scrollbar { display: block; height: 4px; }
+        .order-sub-tabs:hover::-webkit-scrollbar-track { background: transparent; }
+        .order-sub-tabs:hover::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+        .order-sub-tabs:hover::-webkit-scrollbar-thumb:hover { background: #ccc; }
+        .order-sub-tab { flex-shrink: 0; padding: 4px 12px; border: 1px solid #e5e5e5; border-radius: 14px; font-size: 12px; cursor: pointer; background: #fff; color: #666; transition: all 0.2s; white-space: nowrap; }
+        .order-sub-tab.active { background: #FFF3E8; border-color: #FF7D00; color: #FF7D00; font-weight: 500; }
+        .order-sub-tab:hover { border-color: #FF7D00; color: #FF7D00; }
+        .order-item { display: flex; padding: 12px 16px; border-bottom: 1px solid #f0f0f0; gap: 12px; cursor: pointer; transition: background 0.15s; }
+        .order-item:hover { background: #fafafa; }
+        .order-item:last-child { border-bottom: none; }
+        .order-item-img { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #f3f4f6; }
+        .order-item-info { flex: 1; min-width: 0; }
+        .order-item-name { font-size: 14px; font-weight: 500; color: #222; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 2px; }
+        .order-item-spec { font-size: 12px; color: #999; }
+        .order-item-right { text-align: right; flex-shrink: 0; }
+        .order-item-price { font-size: 15px; font-weight: 600; color: #222; }
+        .order-item-qty { font-size: 12px; color: #999; }
+        .order-item-status { font-size: 12px; margin-top: 4px; }
+        .order-item-status.pending-pay { color: #FF7D00; }
+        .order-item-status.paid { color: #1677FF; }
+        .order-item-status.shipped { color: #722ED1; }
+        .order-item-status.completed { color: #07C160; }
+        .order-item-status.cancelled { color: #999; }
+        .order-item-status.refunding { color: #FAAD14; }
+        .order-item-status.refunded { color: #999; }
+        .order-item-actions { margin-top: 6px; display: flex; gap: 6px; justify-content: flex-end; }
+        .order-item-actions button { padding: 3px 12px; border-radius: 6px; border: 1px solid #d9d9d9; font-size: 12px; cursor: pointer; background: #fff; color: #666; transition: all 0.2s; }
+        .order-item-actions .btn-primary { background: #FF7D00; color: #fff; border-color: #FF7D00; }
+        .order-item-actions .btn-primary:hover { background: #e66d00; }
+        .order-item-actions button:hover { border-color: #FF7D00; color: #FF7D00; }
+        .order-empty { text-align: center; padding: 40px 20px; color: #999; font-size: 14px; }
+        .order-empty svg { width: 48px; height: 48px; color: #ddd; margin-bottom: 8px; }
+
+        /* 智能客服入口 */
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+        }
+        .ai-entry {
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            padding: 6px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-right: 6px;
+            color: #222;
+            text-decoration: none;
+        }
+        .ai-entry:hover {
+            background: #f5f5f5;
+        }
+        .ai-entry-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .ai-entry-text {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            color: #444;
+            letter-spacing: 0.3px;
+        }
+        /* 智能客服页面 - 主题变量 */
+        .ai-page {
+            --ai-bg: #fff;
+            --ai-msg-bg: #fafafa;
+            --ai-text: #333;
+            --ai-border: #f0f0f0;
+            --ai-bubble-bot: #fff;
+            --ai-bubble-user: #FF7D00;
+            --ai-bubble-user-text: #fff;
+            --ai-header-text: #222;
+            --ai-sub-text: #999;
+            --ai-input-bg: #fff;
+            --ai-input-border: #e8e8e8;
+            --ai-btn-disabled: #ddd;
+            --ai-clear-text: #999;
+            --ai-time-text: #999;
+            --ai-shadow: rgba(0,0,0,0.04);
+            --ai-bot-border: #eee;
+        }
+        .ai-page[data-theme="dark"] {
+            --ai-bg: #1E1E1E;
+            --ai-msg-bg: #111;
+            --ai-text: #e0e0e0;
+            --ai-border: #333;
+            --ai-bubble-bot: #2a2a2a;
+            --ai-bubble-user: #FF7D00;
+            --ai-bubble-user-text: #fff;
+            --ai-header-text: #f0f0f0;
+            --ai-sub-text: #888;
+            --ai-input-bg: #2a2a2a;
+            --ai-input-border: #444;
+            --ai-btn-disabled: #444;
+            --ai-clear-text: #888;
+            --ai-time-text: #777;
+            --ai-shadow: rgba(0,0,0,0.2);
+            --ai-bot-border: #333;
+        }
+        .page-content.active#aiServicePage {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 0;
+        }
+        .ai-page {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: var(--ai-bg);
+        }
+        .ai-top {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--ai-border);
+        }
+        .ai-top-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ai-top-icon {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+        .ai-top-text h2 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--ai-header-text);
+        }
+        .ai-top-text p {
+            margin: 2px 0 0;
+            font-size: 12px;
+            color: var(--ai-sub-text);
+        }
+        .ai-top-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-theme-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            color: #999;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+        }
+        .ai-theme-btn:hover {
+            background: #f5f5f5;
+            color: #FF7D00;
+        }
+        .ai-page[data-theme="dark"] .ai-theme-btn:hover {
+            background: #333;
+        }
+        .ai-theme-icon-light { display: block; }
+        .ai-theme-icon-dark { display: none; }
+        .ai-page[data-theme="dark"] .ai-theme-icon-light { display: none; }
+        .ai-page[data-theme="dark"] .ai-theme-icon-dark { display: block; }
+        .ai-clear-btn {
+            background: none;
+            border: none;
+            font-size: 13px;
+            color: var(--ai-clear-text);
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .ai-clear-btn:hover {
+            background: #f5f5f5;
+            color: #FF7D00;
+        }
+        .ai-page[data-theme="dark"] .ai-clear-btn:hover {
+            background: #333;
+        }
+        .ai-msgs {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-height: 0;
+            background: var(--ai-msg-bg);
+        }
+        .ai-msgs::-webkit-scrollbar { width: 4px; }
+        .ai-msgs::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+        .ai-msg-row {
+            display: flex;
+            gap: 8px;
+            max-width: 85%;
+        }
+        .ai-msg-row.bot { align-self: flex-start; }
+        .ai-msg-row.user { align-self: flex-end; flex-direction: row-reverse; }
+        .ai-msg-avatar {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ai-msg-avatar svg {
+            width: 24px;
+            height: 24px;
+        }
+        .ai-msg-content { min-width: 0; }
+        .ai-msg-bubble {
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        .ai-msg-row.bot .ai-msg-bubble {
+            background: var(--ai-bubble-bot);
+            color: var(--ai-text);
+            border: 1px solid var(--ai-bot-border);
+            border-top-left-radius: 4px;
+            box-shadow: 0 1px 4px var(--ai-shadow);
+        }
+        .ai-msg-row.user .ai-msg-bubble {
+            background: var(--ai-bubble-user);
+            color: var(--ai-bubble-user-text);
+            border-top-right-radius: 4px;
+            box-shadow: 0 1px 4px var(--ai-shadow);
+        }
+        .ai-msg-time {
+            font-size: 12px;
+            color: var(--ai-time-text);
+            margin-top: 4px;
+            text-align: right;
+            padding-right: 2px;
+        }
+        .ai-input-row {
+            flex-shrink: 0;
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px 14px;
+            border-top: 1px solid var(--ai-border);
+            background: var(--ai-bg);
+        }
+        .ai-input {
+            flex: 1;
+            padding: 9px 14px;
+            border: 1.5px solid var(--ai-input-border);
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            color: var(--ai-text);
+            background: var(--ai-input-bg);
+            resize: none;
+            font-family: inherit;
+            line-height: 1.5;
+            max-height: 72px;
+        }
+        .ai-input:focus { border-color: #FF7D00; }
+        .ai-input::placeholder { color: #bbb; }
+        .ai-send-btn {
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 10px;
+            background: #FF7D00;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .ai-send-btn:hover { background: #e66d00; }
+        .ai-send-btn:disabled { background: var(--ai-btn-disabled); cursor: not-allowed; }
+        .ai-send-btn:disabled:hover { background: var(--ai-btn-disabled); }
+        .ai-typing {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+            padding: 2px 0;
+        }
+        .ai-typing span {
+            width: 6px;
+            height: 6px;
+            background: #bbb;
+            border-radius: 50%;
+            animation: aiDot 1.4s infinite;
+        }
+        .ai-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .ai-typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes aiDot {
+            0%,60%,100% { opacity: 0.3; transform: scale(0.8); }
+            30% { opacity: 1; transform: scale(1); }
+        }
+
+        /* 智能客服快捷按钮 */
+        .ai-quick-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .ai-q-btn {
+            padding: 6px 16px;
+            border: 1.5px solid #FF7D00;
+            border-radius: 16px;
+            background: rgba(255,125,0,0.08);
+            color: #FF7D00;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            font-family: inherit;
+        }
+        .ai-q-btn:hover {
+            background: #FF7D00;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(255,125,0,0.25);
+        }
+        .ai-q-btn:active {
+            transform: scale(0.96);
+        }
+        .ai-page[data-theme="dark"] .ai-q-btn {
+            background: rgba(255,125,0,0.15);
+        }
+        .ai-page[data-theme="dark"] .ai-q-btn:hover {
+            background: #FF7D00;
+            color: #fff;
+        }
+        /* AI结果列表样式 */
+        .ai-result-header {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--ai-header-text);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--ai-border);
+        }
+        .ai-post-item {
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-bottom: 4px;
+            border: 1px solid var(--ai-bot-border);
+            background: var(--ai-msg-bg);
+        }
+        .ai-post-item:hover {
+            background: rgba(255,125,0,0.06);
+            border-color: #FF7D00;
+        }
+        .ai-post-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .ai-post-img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+            background: #f5f5f5;
+        }
+        .ai-post-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .ai-post-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ai-text);
+            line-height: 1.4;
+        }
+        .ai-post-time {
+            font-size: 12px;
+            color: var(--ai-sub-text);
+            margin-top: 3px;
+        }
+        .ai-goods-card {
+            display: flex;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-bottom: 4px;
+            border: 1px solid var(--ai-bot-border);
+            background: var(--ai-msg-bg);
+            align-items: center;
+        }
+        .ai-goods-card:hover {
+            background: rgba(255,125,0,0.06);
+            border-color: #FF7D00;
+        }
+        .ai-goods-img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+            background: #f5f5f5;
+        }
+        .ai-goods-img-placeholder {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .ai-goods-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .ai-goods-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ai-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ai-goods-price {
+            font-size: 14px;
+            color: #FF7D00;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .ai-cart-prompt {
+            text-align: center;
+            margin-top: 12px;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: #FF7D00;
+            background: #FFF7ED;
+            border-radius: 8px;
+            border: 1px dashed #FFB347;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .ai-cart-prompt:hover {
+            background: #FFEDD5;
+        }
+        .ai-page[data-theme="dark"] .ai-cart-prompt {
+            background: #2D1B00;
+            color: #FFB347;
+            border-color: #804A00;
+        }
+        .ai-page[data-theme="dark"] .ai-cart-prompt:hover {
+            background: #3D2800;
+        }
+        .ai-page[data-theme="dark"] .ai-goods-img-placeholder {
+            background: #333;
+        }
+        .ai-md-img {
+            max-width: 120px;
+            max-height: 120px;
+            border-radius: 6px;
+            vertical-align: middle;
+            margin: 4px 0;
+        }
+
+        /* 禁用通知横幅 */
+        .disable-notice {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #FEE2E2, #FFE4E6);
+            border-bottom: 2px solid #FCA5A5;
+            color: #991B1B; font-size: 14px;
+            transform: translateY(-100%);
+            transition: transform 0.4s ease-out;
+            box-shadow: 0 2px 12px rgba(239,68,68,0.15);
+        }
+        .disable-notice.active { transform: translateY(0); }
+        .disable-notice-icon { font-size: 22px; flex-shrink: 0; }
+        .disable-notice-body { flex: 1; min-width: 0; }
+        .disable-notice-text { font-weight: 600; line-height: 1.4; }
+        .disable-notice-timer { font-size: 13px; color: #DC2626; margin-top: 2px; }
+        .disable-notice-btn {
+            flex-shrink: 0; border: 1px solid #DC2626; background: #fff;
+            color: #DC2626; padding: 6px 14px; border-radius: 6px;
+            font-size: 13px; cursor: pointer; font-weight: 500;
+            transition: all 0.2s;
+        }
+        .disable-notice-btn:hover { background: #DC2626; color: #fff; }
+        .disable-notice-bar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 10000; height: 3px;
+            background: transparent;
+        }
+        .disable-notice-bar-inner {
+            height: 100%; background: #EF4444;
+            transition: width 1s linear;
+        }
+
+        /* ===================== 聊天 ===================== */
+        .chat-session-list { padding: 0; }
+        .chat-session-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 20px; cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.15s;
+        }
+        .chat-session-item:hover { background: #f8f8f8; }
+        .chat-session-avatar {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: var(--primary); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0; overflow: hidden;
+        }
+        .chat-session-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .chat-session-info { flex: 1; min-width: 0; }
+        .chat-session-name {
+            font-size: 15px; font-weight: 500; color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .chat-session-preview {
+            font-size: 13px; color: #999; margin-top: 4px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .chat-session-right {
+            text-align: right; flex-shrink: 0;
+            display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+        }
+        .chat-session-time { font-size: 11px; color: #bbb; white-space: nowrap; }
+        .chat-session-badge {
+            background: #EF4444; color: #fff; font-size: 11px;
+            min-width: 18px; height: 18px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 5px; font-weight: 600;
+        }
+        .chat-empty { display: none; }
+
+        /* 聊天详情 */
+        .chat-detail-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px 16px; border-bottom: 1px solid var(--border-color);
+            background: #fff; position: sticky; top: 0; z-index: 2;
+        }
+        .chat-back-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: #f5f5f5; border: none; color: #333;
+            cursor: pointer; flex-shrink: 0;
+            transition: background 0.15s;
+        }
+        .chat-back-btn:hover { background: #e8e8e8; }
+        .chat-back-btn svg { width: 20px; height: 20px; }
+        .chat-detail-title { flex: 1; text-align: center; font-size: 16px; font-weight: 600; }
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 16px;
+            display: flex; flex-direction: column; gap: 12px;
+            background: #f5f5f5; min-height: 400px; max-height: 500px;
+        }
+        .chat-message-row {
+            display: flex; align-items: flex-start; gap: 6px;
+            max-width: 80%;
+        }
+        .chat-message-row.mine { align-self: flex-end; flex-direction: row-reverse; }
+        .chat-message-row.other { align-self: flex-start; }
+        .msg-avatar-col {
+            width: 32px; height: 32px; border-radius: 50%;
+            overflow: hidden; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: #f0f0f0;
+        }
+        .msg-avatar-col img { width: 100%; height: 100%; object-fit: cover; }
+        .msg-avatar-fallback {
+            font-size: 12px; color: #999; font-weight: 500;
+        }
+        .msg-content-col { max-width: calc(100% - 38px); }
+        .chat-message-bubble {
+            padding: 10px 14px; border-radius: 16px; font-size: 14px;
+            line-height: 1.5; word-break: break-word; position: relative;
+        }
+        .chat-message-row.mine .chat-message-bubble {
+            background: var(--primary); color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-message-row.other .chat-message-bubble {
+            background: #fff; color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+        .chat-msg-img {
+            max-width: 200px; max-height: 200px; border-radius: 8px;
+            display: block; cursor: pointer;
+        }
+        .chat-message-time {
+            font-size: 10px; color: #bbb; margin-top: 4px;
+            text-align: right;
+        }
+        .chat-message-row.mine .chat-message-time { text-align: right; }
+        .chat-message-row.other .chat-message-time { text-align: left; }
+        .chat-input-bar {
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px 16px; border-top: 1px solid var(--border-color);
+            background: #fff;
+        }
+        .chat-file-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; border-radius: 50%;
+            border: none; background: #f5f5f5; color: #666;
+            cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+        }
+        .chat-file-btn:hover { background: #e8e8e8; color: #333; }
+        .chat-file-btn svg { width: 20px; height: 20px; }
+        .chat-file-btn-wrap { position: relative; }
+        .chat-file-menu {
+            position: absolute; bottom: 100%; left: 0; margin-bottom: 6px;
+            background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            width: 140px; padding: 6px; display: none; z-index: 50;
+        }
+        .chat-file-menu.active { display: block; }
+        .chat-file-menu-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 12px; border-radius: 6px; cursor: pointer;
+            font-size: 14px; color: #333; transition: background 0.12s;
+        }
+        .chat-file-menu-item:hover { background: #f5f5f5; }
+        .chat-file-menu-item svg { width: 18px; height: 18px; color: #666; flex-shrink: 0; }
+        .chat-input {
+            flex: 1; border: 1px solid var(--border-color);
+            border-radius: 20px; padding: 10px 16px; font-size: 14px;
+            outline: none; transition: border-color 0.2s;
+        }
+        .chat-input:focus { border-color: var(--primary); }
+        .chat-send-btn {
+            background: var(--primary); color: #fff; border: none;
+            border-radius: 20px; padding: 10px 20px; font-size: 14px;
+            cursor: pointer; font-weight: 500; flex-shrink: 0;
+            transition: opacity 0.2s;
+        }
+        .chat-send-btn:hover { opacity: 0.85; }
+        .chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* 商品卡片消息 */
+        .chat-goods-card {
+            display: flex; gap: 10px; padding: 0; overflow: hidden;
+            min-width: 200px; max-width: 260px; border-radius: 10px;
+        }
+        .chat-goods-card-img {
+            width: 72px; height: 72px; object-fit: cover; border-radius: 6px;
+            background: #f3f4f6; flex-shrink: 0;
+        }
+        .chat-goods-card-info {
+            display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0;
+        }
+        .chat-goods-card-name {
+            font-size: 13px; font-weight: 500; line-height: 1.3;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .mine .chat-goods-card-name { color: #fff; }
+        .other .chat-goods-card-name { color: #1f2329; }
+        .chat-goods-card-price { font-size: 15px; font-weight: 700; color: #EF4444; }
+        .chat-goods-card-badge {
+            font-size: 11px; color: #999;
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        /* 选择商品弹窗 */
+        .chat-order-picker-dialog {
+            max-width: 480px; max-height: 70vh; display: flex; flex-direction: column;
+        }
+        .chat-order-picker-dialog .modal-body {
+            flex: 1; overflow-y: auto; padding: 16px; min-height: 100px;
+        }
+        .chat-order-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px; border-radius: 8px; cursor: pointer;
+            transition: background 0.12s; border: 1px solid #f0f0f0;
+            margin-bottom: 8px;
+        }
+        .chat-order-item:hover { background: #f9f9f9; border-color: var(--primary); }
+        .chat-order-item-img {
+            width: 56px; height: 56px; border-radius: 6px; object-fit: cover;
+            background: #f3f4f6; flex-shrink: 0;
+        }
+        .chat-order-item-info { flex: 1; min-width: 0; }
+        .chat-order-item-name { font-size: 14px; font-weight: 500; color: #1f2329; margin-bottom: 4px; }
+        .chat-order-item-price { font-size: 14px; font-weight: 600; color: #EF4444; }
+
+        .chat-load-more {
+            text-align: center; padding: 10px; font-size: 13px; color: var(--primary);
+            cursor: pointer;
+        }
+        .chat-load-more:hover { text-decoration: underline; }
+        .chat-date-divider {
+            text-align: center; font-size: 12px; color: #bbb;
+            margin: 8px 0; position: relative;
+        }
+        .chat-date-divider span {
+            background: #f5f5f5; padding: 0 12px; position: relative; z-index: 1;
+        }
+        .chat-date-divider::after {
+            content: ''; position: absolute; left: 0; right: 0; top: 50%;
+            height: 1px; background: #e0e0e0;
+        }
+        #messagesPage { position: relative; }
+        #chatDetailView {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: #fff; z-index: 10;
+            display: flex; flex-direction: column;
+        }
+        #chatDetailView[style*="display:none"] { display: none !important; }
+        #chatDetailView[style*="display: none"] { display: none !important; }
+    </style>
+    <script>
+        window._AMapSecurityConfig = { securityJsCode: "7535fffa439e1230d7553adfc5c197a6" };
+    </script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=4568fce2c1d34301fcd589c1b2a08162"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <!-- 顶部通栏 -->
+    <header class="top-bar">
+        <div class="top-bar-left">
+            <!-- 导航侧边菜单 (汉堡菜单) -->
+            <div class="nav-side">
+                <button class="nav-side-btn" onclick="openNavSide()">
+                    <svg class="hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 32 32" fill="none">
+                    <path d="M8 14L16 8l8 6v12H8V14z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                    <path d="M12 22v-5h8v5" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="platform-name">校易帮</span>
+            <span class="platform-sub">校园互助生态</span>
+            <span class="school-indicator" id="schoolIndicator">
+                <svg class="pin-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                <span id="schoolNameText">暂未绑定学校</span>
+                <a class="form-display-bind" id="navSchoolBind" onclick="goBindUniversity()" style="display:none">去绑定→</a>
+            </span>
+
+            <!-- 移动端头像下拉 -->
+            <div class="mobile-user-menu" id="mobileUserMenu">
+                <img src="https://campus-easytrade.oss-cn-beijing.aliyuncs.com/337f92f6-885b-470f-b024-7eed296773d4.jpg" alt="头像" class="mobile-user-avatar" id="mobileTopAvatar">
+                <svg class="mobile-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                <div class="mobile-dropdown-card" id="mobileDropdownCard">
+                    <div class="mobile-dropdown-header">
+                        <img src="https://campus-easytrade.oss-cn-beijing.aliyuncs.com/337f92f6-885b-470f-b024-7eed296773d4.jpg" alt="头像" class="mobile-dropdown-avatar" id="mobileDropdownAvatar">
+                        <div class="mobile-dropdown-user-info">
+                            <span class="mobile-dropdown-name" id="mobileDropdownName">用户</span>
+                            <div class="mobile-dropdown-stats">
+                                <span class="mobile-dropdown-credit">信誉分: <strong id="mobileDropdownCredit">850</strong></span>
+                                <span class="mobile-dropdown-balance">余额: <strong id="mobileDropdownBalance">0.00</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mobile-dropdown-divider"></div>
+                    <a href="#" class="mobile-dropdown-item" onclick="showPage('profile'); closeMobileDropdown(); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+                        个人中心
+                    </a>
+                    <a href="#" class="mobile-dropdown-item" onclick="showPage('cart'); closeMobileDropdown(); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+                        购物车
+                    </a>
+                    <a href="#" class="mobile-dropdown-item" onclick="showPage('messages'); closeMobileDropdown(); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 4h16v12H4z"/><path d="M4 8l8 4 8-4"/></svg>
+                        消息中心
+                        <span class="badge-small" id="mobileMsgBadge">0</span>
+                    </a>
+                    <a href="#" class="mobile-dropdown-item admin-only" id="mobileAdminSwitchBtn" onclick="switchToAdmin(); closeMobileDropdown(); return false;" style="display: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                        切换至管理后台
+                    </a>
+                    <div class="mobile-dropdown-divider"></div>
+                    <a href="#" class="mobile-dropdown-item mobile-dropdown-logout" onclick="logout(); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        退出登录
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="top-bar-right">
+            <div class="ai-entry" onclick="showPage('aiService'); closeDropdown();" title="校易帮智能客服">
+                <svg class="ai-entry-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="claudeOrange" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#FF9A3D"/>
+                            <stop offset="100%" stop-color="#E06500"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- 方形主体（圆角8px） -->
+                    <rect x="3" y="4" width="18" height="18" rx="3.5" fill="url(#claudeOrange)"/>
+
+                    <!-- 三个白色圆点眼睛 -->
+                    <circle cx="8.5" cy="12.5" r="1.2" fill="#fff"/>
+                    <circle cx="12" cy="12" r="1.2" fill="#fff"/>
+                    <circle cx="15.5" cy="12.5" r="1.2" fill="#fff"/>
+
+                    <!-- 头顶方形天线（圆角） -->
+                    <rect x="10.5" y="1.5" width="3" height="2.8" rx="1.2" fill="url(#claudeOrange)"/>
+                </svg>
+                <span class="ai-entry-text">校易帮智能客服</span>
+            </div>
+            <div class="user-menu" id="userMenu">
+                <img src="https://campus-easytrade.oss-cn-beijing.aliyuncs.com/337f92f6-885b-470f-b024-7eed296773d4.jpg" alt="头像" class="user-avatar" id="topAvatar">
+        <span class="user-name" id="topNickname">用户</span>
+        <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6"/>
+        </svg>
+                
+                <!-- 下拉菜单 -->
+                <div class="dropdown-card" id="dropdownCard">
+                    <div class="dropdown-header">
+                        <img src="https://campus-easytrade.oss-cn-beijing.aliyuncs.com/337f92f6-885b-470f-b024-7eed296773d4.jpg" alt="头像" class="dropdown-avatar" id="dropdownAvatar">
+                <div class="dropdown-user-info">
+                    <span class="dropdown-name" id="dropdownName">用户</span>
+                    <div class="dropdown-stats">
+                        <span class="dropdown-credit">信誉分: <strong id="dropdownCredit">850</strong></span>
+                        <span class="dropdown-balance">余额: <strong id="dropdownBalance">0.00</strong></span>
+                    </div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item" onclick="showPage('profile'); closeDropdown(); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+                        个人中心
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="showPage('cart'); closeDropdown(); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+                        购物车
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="showPage('messages'); closeDropdown(); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 4h16v12H4z"/><path d="M4 8l8 4 8-4"/></svg>
+                        消息中心
+                        <span class="badge-small" id="msgBadge">0</span>
+                    </a>
+                    <a href="#" class="dropdown-item admin-only" id="adminSwitchBtn" onclick="switchToAdmin(); closeDropdown(); return false;" style="display: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                        切换至管理后台
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item logout" onclick="logout(); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        退出登录
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-layout">
+        <!-- 左侧导航 -->
+        <nav class="side-nav">
+            <ul class="nav-list">
+                <li class="nav-item active" data-page="home">
+                    <a href="#" onclick="showPage('home'); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        <span>平台主页</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="market">
+                    <a href="#" onclick="showPage('market'); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                            <path d="M3 6h18"/>
+                            <path d="M16 10a4 4 0 01-8 0"/>
+                        </svg>
+                        <span>杂货铺</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="fleamarket">
+                    <a href="#" onclick="showPage('fleamarket'); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M2 12h20"/>
+                            <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                        </svg>
+                        <span>校园虚拟跳蚤市场</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="help">
+                    <a href="#" onclick="showPage('help'); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <span>帮助与客服</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 账号禁用通知横幅（默认隐藏，被禁用时显示） -->
+        <div class="disable-notice" id="disableNotice" style="display:none;">
+            <div class="disable-notice-icon">&#x26A0;</div>
+            <div class="disable-notice-body">
+                <div class="disable-notice-text" id="disableNoticeText"></div>
+                <div class="disable-notice-timer" id="disableNoticeTimer"></div>
+            </div>
+            <button class="disable-notice-btn" onclick="forceLogoutNow()">立即退出</button>
+        </div>
+
+        <!-- 中间内容区 -->
+        <main class="main-content" id="mainContent">
+            
+            <!-- 平台主页 - 三栏布局 -->
+            <div class="page-content active" id="homePage">
+                <div class="home-body">
+
+                    <!-- ===== 左侧栏 ===== -->
+                    <div class="home-col-left">
+                        <!-- 用户摘要 -->
+                        <div class="home-col-user">
+                            <div class="home-user-avatar" id="homeAvatarWrap">
+                                <div class="home-user-avatar-placeholder">👤</div>
+                            </div>
+                            <div>
+                                <div class="home-user-name" id="homeNickname">用户</div>
+                                <div class="home-user-actions" id="homeWelcome">
+                                    <button class="home-user-action-btn" onclick="showPage('market');showProductPublish();return false;">发布闲置</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 数据概览 -->
+                        <div class="home-stat-ring-card">
+                            <div class="home-stat-ring-title">数据概览</div>
+                            <div class="home-stat-rings">
+                                <div class="home-stat-ring-item">
+                                    <svg class="home-stat-ring-svg" viewBox="0 0 18 18">
+                                        <circle class="home-stat-ring-bg" cx="9" cy="9" r="7"/>
+                                        <circle class="home-stat-ring-fg" id="ringProduct" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="43.98"/>
+                                    </svg>
+                                    <span class="home-stat-ring-label">闲置</span>
+                                </div>
+                                <div class="home-stat-ring-item">
+                                    <svg class="home-stat-ring-svg" viewBox="0 0 18 18">
+                                        <circle class="home-stat-ring-bg" cx="9" cy="9" r="7"/>
+                                        <circle class="home-stat-ring-fg" id="ringActive" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="43.98"/>
+                                    </svg>
+                                    <span class="home-stat-ring-label">进行中</span>
+                                </div>
+                                <div class="home-stat-ring-item">
+                                    <svg class="home-stat-ring-svg" viewBox="0 0 18 18">
+                                        <circle class="home-stat-ring-bg" cx="9" cy="9" r="7"/>
+                                        <circle class="home-stat-ring-fg" id="ringDone" cx="9" cy="9" r="7" stroke-dasharray="43.98" stroke-dashoffset="43.98"/>
+                                    </svg>
+                                    <span class="home-stat-ring-label">已完成</span>
+                                </div>
+                            </div>
+                            <div class="home-stat-chart">
+                                <div class="home-stat-bar active" style="height:55%;" title="闲置"></div>
+                                <div class="home-stat-bar" style="height:35%;" title="进行中"></div>
+                                <div class="home-stat-bar" style="height:25%;" title="已完成"></div>
+                            </div>
+                        </div>
+
+                        <!-- 四项统计 -->
+                        <div class="home-col-left-items">
+                            <div class="home-col-left-item" onclick="showPage('market');">
+                                <span class="home-col-left-num" id="myProductsCount">0</span>
+                                <span class="home-col-left-label">我的闲置</span>
+                            </div>
+                            <div class="home-col-left-item" onclick="showPage('orders');">
+                                <span class="home-col-left-num" id="myOngoingCount">0</span>
+                                <span class="home-col-left-label">进行中</span>
+                            </div>
+                            <div class="home-col-left-item" onclick="showPage('orders');">
+                                <span class="home-col-left-num" id="myCompletedCount">0</span>
+                                <span class="home-col-left-label">已完成</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 中间栏 ===== -->
+                    <div class="home-col-center">
+                        <!-- 公告（仅中间） -->
+                        <div class="home-announce-bar" id="announcementBar">
+                            <div class="home-announce-nav">
+                                <button class="home-announce-nav-btn" onclick="prevAnnouncement()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                                </button>
+                                <button class="home-announce-nav-btn" onclick="nextAnnouncement()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                                </button>
+                            </div>
+                            <div class="home-announce-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                                <span>公告</span>
+                            </div>
+                            <div class="home-announce-text-wrap">
+                                <div class="home-announce-carousel" id="announcementCarousel"></div>
+                                <div class="home-announce-dots" id="announcementDots"></div>
+                            </div>
+                            </div>
+
+                        <!-- 校园资讯标题 -->
+                        <div class="home-carousel-title">
+                            <span>校园资讯</span>
+                            <span class="home-carousel-sub">你可以从这里获取更多当前学校的热点消息哦！</span>
+                            <select class="home-category-select" id="newsCategoryFilter" onchange="onNewsCategoryChange()">
+                                <option value="">全部分类</option>
+                            </select>
+                        </div>
+
+                        <!-- 校园资讯展示容器 -->
+                        <div class="news-gallery-container" id="campusNewsBar">
+                            <div class="news-gallery">
+                                <button class="news-gallery-btn prev" id="galleryPrevBtn" onclick="galleryPage(-1)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                                </button>
+                                <div class="gallery-viewport">
+                                    <div class="gallery-track" id="galleryTrack"></div>
+                                </div>
+                                <button class="news-gallery-btn next" id="galleryNextBtn" onclick="galleryPage(1)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                                </button>
+                            </div>
+
+                            <!-- 画廊装饰特效（空白区域填充） -->
+                            <div class="gallery-decoration" aria-hidden="true">
+                                <div class="gallery-decor-glow"></div>
+                                <div class="gallery-decor-icons">
+                                    <span class="decor-icon" style="--dx:55%; --dy:25%; --size:36px">♢</span>
+                                    <span class="decor-icon" style="--dx:72%; --dy:50%; --size:28px">✎</span>
+                                    <span class="decor-icon" style="--dx:62%; --dy:78%; --size:24px">◎</span>
+                                    <span class="decor-icon" style="--dx:85%; --dy:32%; --size:32px">☰</span>
+                                    <span class="decor-icon" style="--dx:76%; --dy:68%; --size:26px">♡</span>
+                                    <span class="decor-icon extra" style="--dx:28%; --dy:22%; --size:20px">✦</span>
+                                    <span class="decor-icon extra" style="--dx:48%; --dy:82%; --size:18px">◈</span>
+                                    <span class="decor-icon extra" style="--dx:90%; --dy:15%; --size:26px">❖</span>
+                                    <span class="decor-icon extra" style="--dx:12%; --dy:65%; --size:24px">✧</span>
+                                    <span class="decor-icon extra" style="--dx:68%; --dy:88%; --size:20px">◎</span>
+                                </div>
+                            </div>
+
+                            <!-- 无数据空状态 -->
+                            <div class="gallery-empty-state">
+                                <div class="gallery-empty-state-icon">
+                                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5">
+                                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <path d="M21 15l-5-5L5 21"/>
+                                    </svg>
+                                </div>
+                                <div class="gallery-empty-state-title">该分类暂无资讯</div>
+                                <div class="gallery-empty-state-sub">可以切换右上角分类查看更多内容</div>
+                            </div>
+
+                            <!-- 详情弹窗 -->
+                            <div class="carousel-popup" id="carouselPopup">
+                                <button class="carousel-popup-close" onclick="closeCarouselPopup()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                </button>
+                                <span class="carousel-popup-tag" id="popupTag">公告</span>
+                                <h3 class="carousel-popup-title" id="popupTitle">标题</h3>
+                                <div class="carousel-popup-desc" id="popupDesc">内容</div>
+                                <div class="carousel-popup-footer">
+                                    <span class="carousel-popup-publisher" id="popupPublisher"></span>
+                                    <span class="carousel-popup-time" id="popupTime"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 右侧栏 ===== -->
+                    <div class="home-col-right">
+                        <div class="home-sidebar-scroll">
+                            <!-- 最新上架 -->
+                            <div class="home-side-section">
+                                <div class="home-side-title">
+                                    最新上架
+                                    <a class="home-side-more" href="#" onclick="showPage('market'); return false;">前往校园商城 →</a>
+                                </div>
+                                <div id="homeProductList">
+                                    <div class="home-list-empty">暂无最新商品</div>
+                                </div>
+                            </div>
+                            <!-- 平台动态 -->
+                            <div class="home-side-section">
+                                <div class="home-side-title">
+                                    平台动态
+                                </div>
+                                <div class="home-activity-card" id="homeDynamicList">
+                                    <div class="home-list-empty">暂无动态</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 隐藏容器（JS 兼容） -->
+                <div id="latestTasks" style="display:none;"></div>
+                <div id="announcementDots" style="display:none;"></div>
+
+            </div>
+
+            <!-- 任务大厅 -->
+            <div class="page-content" id="tasksPage">
+                <div class="page-header">
+                    <h2>任务大厅</h2>
+                    <button class="btn-primary" onclick="showTaskPublish()">+ 发布任务</button>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>状态</label>
+                        <select id="taskStatusFilter" onchange="filterTasks()">
+                            <option value="all">全部</option>
+                            <option value="pending">待接单</option>
+                            <option value="ongoing">进行中</option>
+                            <option value="completed">已完成</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>排序</label>
+                        <select id="taskSort" onchange="filterTasks()">
+                            <option value="time">按时间</option>
+                            <option value="price_asc">价格从低到高</option>
+                            <option value="price_desc">价格从高到低</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="task-list full" id="fullTaskList">
+                    <div class="loading-placeholder">加载中...</div>
+                </div>
+            </div>
+
+            <!-- 杂货铺 -->
+            <div class="page-content" id="marketPage">
+
+                <div class="filter-bar" style="margin-top:0;">
+                    <div class="filter-group">
+                        <label class="filter-label">分类：</label>
+                        <select class="filter-select" id="categorySelect" onchange="onCategoryChange()">
+                            <option value="">全部</option>
+                        </select>
+                    </div>
+                    <div class="search-box-compact">
+                        <svg class="search-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" class="search-input-compact" placeholder="搜索商品..." id="productSearchInput" oninput="searchGoods()">
+                    </div>
+                    <button class="reset-btn-filter" onclick="resetGoodsFilters()">重置</button>
+                    <button class="btn-primary" onclick="showProductPublish()" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;">+ 发布闲置</button>
+                </div>
+
+                <div class="product-grid full" id="fullProductList">
+                    <div class="loading-placeholder">加载中...</div>
+                </div>
+                
+                <div class="load-more-hint" id="loadMoreHint" style="display: none;">
+                    <span>正在加载更多...</span>
+                </div>
+            </div>
+
+            <!-- 校园虚拟跳蚤市场 -->
+            <div class="page-content" id="fleamarketPage">
+                <div id="fleamarketContainer">
+                    <div id="amapContainer"></div>
+                    <div id="fmPin"><div class="pin-shadow"></div><div class="pin-body"></div><div class="pin-dot"></div></div>
+                    <!-- 左上角悬浮控制面板 -->
+                    <div class="fleamarket-panel" id="fleamarketPanel">
+                        <div style="text-align:right;margin-bottom:4px">
+                            <button onclick="fmTogglePanel(true)" style="background:none;border:none;cursor:pointer;font-size:16px;color:#999;padding:2px 4px;line-height:1" title="收起面板">_</button>
+                        </div>
+                        <!-- 学校名称显示（只读） -->
+                        <div class="panel-row">
+                            <div class="school-display-box" id="fmSchoolDisplay">
+                                <span id="fmSchoolName">暂无学校</span>
+                            </div>
+                        </div>
+                        <!-- 功能按钮区 -->
+                        <div class="panel-row" id="fmBtnRow">
+                            <div class="btn-row">
+                                <button class="btn-confirm" id="fmConfirmBtn" onclick="fmConfirmUniversity()" disabled>确认学校</button>
+                                <button class="btn-locate" onclick="fmLocateMe()">我的位置</button>
+                                <button class="btn-back" id="fmBackBtn" onclick="fmBackToSchool()" disabled>回到学校</button>
+                            </div>
+                        </div>
+                        <div class="geo-info" id="fmGeoRegion">未定位</div>
+                        <div class="geo-info geo-detail" id="fmGeoAddress"></div>
+                        <div class="status-text" id="fmStatus">点击「我的位置」获取当前位置</div>
+                    </div>
+                    <button id="fmShowPanelBtn" onclick="fmTogglePanel(false)" style="display:none;position:absolute;top:16px;left:16px;z-index:350;background:rgba(255,255,255,0.95);border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.1);color:var(--text-primary)">展开面板</button>
+                    <!-- 右下角版权 -->
+                    <div class="fleamarket-copyright">© 2025 高德地图 校易帮</div>
+                </div>
+            </div>
+
+            <!-- 消息中心（纯聊天） -->
+            <div class="page-content" id="messagesPage">
+                <!-- 会话列表 -->
+                <div id="chatSessionView">
+                    <div class="page-header">
+                        <h2>聊天对话</h2>
+                    </div>
+                    <div class="chat-session-list" id="chatSessionList">
+                        <div class="loading-placeholder">加载中...</div>
+                    </div>
+                </div>
+                <!-- 聊天详情 -->
+                <div id="chatDetailView" style="display:none;">
+                    <div class="chat-detail-header">
+                        <button class="chat-back-btn" onclick="backToChatSessions()" title="返回会话列表">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                        </button>
+                        <span class="chat-detail-title" id="chatDetailTitle">聊天</span>
+                        <div style="width:52px;"></div>
+                    </div>
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="chat-input-bar">
+                        <div class="chat-file-btn-wrap">
+                            <button class="chat-file-btn" onclick="toggleChatMenu()" title="发送文件或商品">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                            </button>
+                            <div class="chat-file-menu" id="chatFileMenu">
+                                <div class="chat-file-menu-item" onclick="selectChatImage()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                    上传图片
+                                </div>
+                                <div class="chat-file-menu-item" onclick="showChatOrderPicker()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                                    上传订单
+                                </div>
+                            </div>
+                        </div>
+                        <input type="file" id="chatFileInput" style="display:none;" accept="image/*" onchange="sendChatFile(this.files)">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="输入消息..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                        <button class="chat-send-btn" onclick="sendChatMessage()">发送</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 平台公告 -->
+            <div class="page-content" id="announcePage">
+                <div class="page-header">
+                    <h2>平台公告</h2>
+                </div>
+
+                <div class="announce-list" id="announceList">
+                    <div class="loading-placeholder">加载中...</div>
+                </div>
+            </div>
+
+            <!-- 帮助与客服 -->
+            <div class="page-content" id="helpPage">
+                <div class="page-header">
+                    <h2>帮助与客服</h2>
+                </div>
+
+                <div class="help-sections">
+                    <div class="help-card">
+                        <h3>平台规则</h3>
+                        <ul>
+                            <li>用户需遵守校园规则，诚信交易</li>
+                            <li>发布任务需真实，报酬需合理</li>
+                            <li>闲置商品需如实描述成色</li>
+                            <li>违规行为将被扣减信誉分</li>
+                        </ul>
+                    </div>
+                    <div class="help-card">
+                        <h3>常见问题</h3>
+                        <ul>
+                            <li>如何发布任务？</li>
+                            <li>如何发布闲置？</li>
+                            <li>如何联系卖家/买家？</li>
+                            <li>如何提高信誉分？</li>
+                        </ul>
+                    </div>
+                    <div class="help-card">
+                        <h3>意见反馈</h3>
+                        <div class="feedback-form">
+                            <div class="feedback-field">
+                                <label class="feedback-label">反馈类别</label>
+                                <select class="feedback-select" id="feedbackCategory">
+                                    <option value="0">功能建议</option>
+                                    <option value="1">Bug报告</option>
+                                    <option value="2">投诉举报</option>
+                                    <option value="3">其他</option>
+                                </select>
+                            </div>
+                            <div class="feedback-field">
+                                <label class="feedback-label">反馈内容 <span class="fb-required">*</span></label>
+                                <textarea class="feedback-input" id="feedbackContent" placeholder="请详细描述您的意见或遇到的问题..." rows="4"></textarea>
+                            </div>
+                            <div class="feedback-field">
+                                <label class="feedback-label">联系方式（选填）</label>
+                                <input class="feedback-input feedback-input--text" id="feedbackContact" placeholder="手机号或邮箱，方便我们联系您">
+                            </div>
+                            <div class="feedback-field">
+                                <label class="feedback-label">图片附件（选填）</label>
+                                <div class="feedback-upload-area" id="feedbackUploadArea" onclick="document.getElementById('feedbackFileInput').click()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    <span>点击上传图片</span>
+                                </div>
+                                <input type="file" id="feedbackFileInput" accept="image/*" multiple style="display:none" onchange="handleFeedbackFiles(this.files)">
+                                <div class="feedback-preview" id="feedbackPreview"></div>
+                            </div>
+                            <button class="btn-primary feedback-submit" onclick="submitFeedback()">提交反馈</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 购物车 -->
+            <div class="page-content" id="cartPage">
+                <div class="cart-top-bar">
+                    <h2>购物车</h2>
+                    <div class="cart-steps">
+                        <div class="co-step active current">
+                            <div class="co-step-dot">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+                            </div>
+                            <span class="co-step-label">购物车</span>
+                        </div>
+                        <div class="co-step-line"></div>
+                        <div class="co-step">
+                            <div class="co-step-dot">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            </div>
+                            <span class="co-step-label">确认订单</span>
+                        </div>
+                        <div class="co-step-line"></div>
+                        <div class="co-step">
+                            <div class="co-step-dot">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                            </div>
+                            <span class="co-step-label">支付</span>
+                        </div>
+                        <div class="co-step-line"></div>
+                        <div class="co-step">
+                            <div class="co-step-dot">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            </div>
+                            <span class="co-step-label">完成</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 空状态 -->
+                <div class="cart-empty" id="cartEmpty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" width="64" height="64">
+                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                    </svg>
+                    <p>购物车是空的</p>
+                    <button class="btn-primary" onclick="showPage('market')">去逛逛</button>
+                </div>
+
+                <!-- 主体：左右分栏 -->
+                <div class="cart-body" id="cartBody" style="display:none;">
+                    <div class="cart-left">
+                        <!-- 搜索栏 -->
+                        <div class="cart-search" id="cartSearchSect">
+                            <svg class="cart-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                            <input type="text" class="cart-search-input" id="cartKeyword" placeholder="搜索购物车商品" oninput="debounceCartSearch();document.getElementById('cartSearchClear').style.display=this.value?'':''" onkeydown="if(event.key==='Enter')doCartSearch()">
+                            <button class="cart-search-clear" id="cartSearchClear" onclick="clearCartKeyword()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- 商品列表区域 -->
+                        <div class="cart-list-wrap">
+                            <div class="cart-table-header">
+                                <div class="cth-check"><input type="checkbox" id="cartSelectAll" onchange="toggleAllCart()"></div>
+                                <div class="cth-img"></div>
+                                <div class="cth-info">商品信息</div>
+                                <div class="cth-price">单价</div>
+                                <div class="cth-qty">数量</div>
+                                <div class="cth-subtotal">小计</div>
+                                <div class="cth-trade">交易方式</div>
+                                <div class="cth-action">操作</div>
+                            </div>
+                            <div class="cart-batch-bar" id="cartBatchBar" style="display:none;">
+                                <span>已选 <span id="cartBatchCount">0</span> 件</span>
+                                <button class="cart-batch-del" onclick="deleteSelectedCart()">删除选中</button>
+                            </div>
+                            <div class="cart-items" id="cartItems"><!-- JS动态渲染 --></div>
+                        </div>
+                    </div>
+                    <div class="cart-right">
+                        <div class="cart-sidebar" id="cartSidebar">
+                            <div class="csb-title">结算</div>
+                            <div class="csb-row">
+                                <span>已选商品</span>
+                                <span id="csbCount">0 件</span>
+                            </div>
+                            <div class="csb-row">
+                                <span>商品小计</span>
+                                <span id="csbSubtotal">¥0.00</span>
+                            </div>
+                            <div class="csb-row">
+                                <span>配送费</span>
+                                <span>¥0.00</span>
+                            </div>
+                            <div class="csb-divider"></div>
+                            <div class="csb-row csb-total">
+                                <span>合计</span>
+                                <span id="csbTotal">¥0.00</span>
+                            </div>
+                            <button class="csb-checkout-btn" onclick="checkoutCart()">去结算</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 确认订单 -->
+            <div class="page-content" id="confirmOrderPage">
+                <div class="co-page">
+                    <div class="co-top-bar">
+                        <button class="co-back-btn" onclick="showPage('cart')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                            返回购物车
+                        </button>
+                        <!-- 进度条 -->
+                        <div class="co-steps">
+                            <div class="co-step active current">
+                            <div class="co-step-dot">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+                            </div>
+                            <span class="co-step-label">购物车</span>
+                        </div>
+                        <div class="co-step-line active"></div>
+                        <div class="co-step active current">
+                            <div class="co-step-dot">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            </div>
+                            <span class="co-step-label">确认订单</span>
+                        </div>
+                        <div class="co-step-line"></div>
+                        <div class="co-step">
+                            <div class="co-step-dot">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                            </div>
+                            <span class="co-step-label">支付</span>
+                        </div>
+                        <div class="co-step-line"></div>
+                        <div class="co-step">
+                            <div class="co-step-dot">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            </div>
+                            <span class="co-step-label">完成</span>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="co-body">
+                        <!-- 左栏 -->
+                        <div class="co-left">
+                            <!-- 收货地址 -->
+                            <div class="co-card">
+                                <div class="co-card-header">
+                                    <div class="co-card-title">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="co-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                        <span>收货地址</span>
+                                    </div>
+                                    <button class="co-add-addr-btn" onclick="showConfirmAddrDialog()">+ 新增地址</button>
+                                </div>
+                                <div class="co-addr-list" id="coAddrList">
+                                    <div class="co-empty">加载中...</div>
+                                </div>
+                            </div>
+
+                            <!-- 商品 -->
+                            <div class="co-card">
+                                <div class="co-card-header">
+                                    <div class="co-card-title">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="co-icon"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                                        <span>订单商品</span>
+                                    </div>
+                                    <span class="co-card-sub" id="coTotalCount">共 0 件商品</span>
+                                </div>
+                                <div id="coItemsContainer"></div>
+                            </div>
+                        </div>
+
+                        <!-- 右栏 -->
+                        <div class="co-right">
+                            <div class="co-right-inner">
+                                <!-- 结算 -->
+                                <div class="co-card">
+                                    <div class="co-card-header">
+                                        <div class="co-card-title">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="co-icon"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                            <span>订单结算</span>
+                                        </div>
+                                    </div>
+                                    <div class="co-summary-row"><span>商品小计</span><span class="co-price" id="coTotalPrice">¥0.00</span></div>
+                                    <div class="co-summary-row"><span>配送费</span><span class="co-price co-price-free">免配送费</span></div>
+                                    <div class="co-summary-total"><span>合计</span><span class="co-price-total" id="coFinalPrice">¥0.00</span></div>
+                                </div>
+
+                                <!-- 支付方式 -->
+                                <div class="co-card">
+                                    <div class="co-card-header">
+                                        <div class="co-card-title">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="co-icon"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                                            <span>支付方式</span>
+                                        </div>
+                                    </div>
+                                    <div class="co-pay-group">
+                                        <div class="co-pay-opt selected" data-value="alipay" onclick="selectConfirmPayment(this)">
+                                            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+                                            <svg class="pay-icon" viewBox="0 0 24 24" fill="#1677FF"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8" stroke="#fff" stroke-width="2"/></svg>
+                                            <span class="pay-label">支付宝</span>
+                                        </div>
+                                        <div class="co-pay-opt" data-value="wechat" onclick="selectConfirmPayment(this)">
+                                            <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+                                            <svg class="pay-icon" viewBox="0 0 24 24" fill="#07C160"><path d="M8.5 13.5l-2 2v-2H5a1 1 0 01-1-1V5a1 1 0 011-1h14a1 1 0 011 1v7.5a1 1 0 01-1 1H9.5l-2 2H8.5z"/></svg>
+                                            <span class="pay-label">微信支付</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 自提商品-卖家地址 -->
+                                <div class="co-card">
+                                    <div class="co-card-header">
+                                        <div class="co-card-title">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="co-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                            <span>自提商品-卖家地址</span>
+                                        </div>
+                                    </div>
+                                    <div class="co-pickup-list" id="coPickupList">
+                                        <div class="co-empty" style="padding: 8px 0;">加载中...</div>
+                                    </div>
+                                </div>
+
+                                <div class="co-btn-group">
+                                    <button class="co-submit-btn" id="coSubmitBtn" onclick="submitConfirmOrder()">立即支付</button>
+                                    <button class="co-submit-btn co-btn-secondary" id="coMockPayBtn" onclick="mockPayConfirmOrder()">模拟支付</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 地址弹窗 -->
+                <div class="co-addr-overlay" id="coAddrOverlay" style="display:none;" onclick="closeConfirmAddrDialog(event)">
+                    <div class="co-addr-dialog" onclick="event.stopPropagation()">
+                        <h3 id="coAddrDialogTitle">新增地址</h3>
+                        <div class="form-group">
+                            <label>收件人姓名</label>
+                            <input type="text" id="coAddrName" placeholder="请输入姓名">
+                        </div>
+                        <div class="form-group">
+                            <label>手机号码</label>
+                            <input type="text" id="coAddrPhone" placeholder="请输入手机号">
+                        </div>
+                        <div class="form-group">
+                            <label>宿舍楼</label>
+                            <select id="coAddrDormitory"><option value="">请选择宿舍楼</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>详细地址</label>
+                            <input type="text" id="coAddrDetail" placeholder="如：3栋203室">
+                        </div>
+                        <div class="co-dialog-footer">
+                            <button class="btn-cancel" onclick="closeConfirmAddrDialog()">取消</button>
+                            <button class="btn-save" id="coAddrSaveBtn" onclick="saveConfirmAddress()">保存</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 地址选择弹窗 -->
+                <div class="co-addr-overlay" id="coAddrPickerOverlay" style="display:none;" onclick="closeAddrPicker(event)">
+                    <div class="co-addr-dialog" onclick="event.stopPropagation()">
+                        <h3>选择收货地址</h3>
+                        <div id="coAddrPickerList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 个人中心 -->
+            <div class="page-content" id="profilePage">
+                <div class="profile-layout">
+                    <!-- 左侧个人主页展示区域 -->
+                    <div class="profile-left">
+                        <div class="profile-display-container">
+                            <!-- 顶部背景和头像区域 -->
+                            <div class="profile-display-header">
+                                <div class="profile-background" id="profileBackground" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                </div>
+                                <div class="profile-avatar-section">
+                                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(this.files)">
+                                    <img src="https://campus-easytrade.oss-cn-beijing.aliyuncs.com/337f92f6-885b-470f-b024-7eed296773d4.jpg" alt="头像" class="profile-avatar-large" id="profileAvatar">
+                                </div>
+                            </div>
+                            
+                            <!-- 个人信息区域 -->
+                            <div class="profile-info-section">
+                                <div class="profile-name-section">
+                                    <h2 class="profile-name-large" id="profileNickname">昵称</h2>
+                                </div>
+                                <p class="profile-bio" id="profileBio">这个人很懒，什么都没写~</p>
+                                
+                                <!-- 信誉积分 -->
+                                <div class="profile-credit-section">
+                                    <span class="profile-credit-label">信誉积分</span>
+                                    <span class="profile-credit-value" id="profileCreditScore">850</span>
+                                </div>
+                                
+                                <!-- 性别、年龄、居住地 -->
+                                <div class="profile-meta-section">
+                                    <span class="profile-meta-item" id="profileGender">未知</span>
+                                    <span class="profile-meta-divider">·</span>
+                                    <span class="profile-meta-item" id="profileAge">--岁</span>
+                                    <span class="profile-meta-divider">·</span>
+                                    <span class="profile-meta-item" id="profileLocation">未填写</span>
+                                </div>
+                                
+                                <!-- 功能按钮 -->
+                                <div class="profile-actions">
+                                    <button class="btn-edit-profile" onclick="editProfile()">编辑主页</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 闲置标签 -->
+                            <div class="profile-tabs-section">
+                                <button class="profile-tab-btn active" data-tab="products" onclick="switchProfileTab('products')">闲置</button>
+                            </div>
+                            
+                            <!-- 内容区域 -->
+                            <div class="profile-content-section" id="profileContentSection">
+                                <div class="loading-placeholder">加载中...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧功能区域 -->
+                    <div class="profile-right-content">
+                        <!-- 我的交易模块 -->
+                        <div class="my-trade-section">
+                            <h3 class="section-title">我的交易</h3>
+                            <div class="trade-entries">
+                                <div class="trade-entry" onclick="openMyProductsSlide()">
+                                    <div class="trade-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/></svg>
+                                    </div>
+                                    <span>我的闲置</span>
+                                </div>
+                                <div class="trade-entry" onclick="openMyAcceptedTasksSlide()">
+                                    <div class="trade-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 11l3 3L22 4"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/></svg>
+                                    </div>
+                                    <span>交易订单</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-bottom">
+                        </div>
+
+                        <div class="profile-right">
+                            <div class="settings-card">
+                                <h4>账号设置</h4>
+                                <div class="settings-list">
+                                    <div class="settings-item" onclick="handleSettingsClick(event, 'editProfile')">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        编辑资料
+                                    </div>
+                                    <div class="settings-item" onclick="handleSettingsClick(event, 'showChangePassword')">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                                        修改密码
+                                    </div>
+                                    <div class="settings-item logout" onclick="handleSettingsClick(event, 'logout')">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                        退出登录
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="wallet-card">
+                                <h4>我的钱包</h4>
+                                <div class="wallet-balance">
+                                    <span class="balance-label">可用余额</span>
+                                    <span class="balance-value" id="walletBalance">¥0.00</span>
+                                </div>
+                                <div class="wallet-frozen">
+                                    <span class="frozen-label">冻结金额</span>
+                                    <span class="frozen-value" id="walletFrozen">¥0.00</span>
+                                </div>
+                                <button class="btn-outline" onclick="showToast('提现功能开发中', 'info')">提现</button>
+                            </div>
+
+                            <div class="credit-card">
+                                <h4>信誉档案</h4>
+                                <div class="credit-level">
+                                    <span>等级</span>
+                                    <span class="level-value" id="creditLevel">Lv.5</span>
+                                </div>
+                                <div class="credit-score">
+                                    <span>信誉分</span>
+                                    <span class="score-value" id="walletCreditScore">850</span>
+                                </div>
+                                <button class="btn-outline small" onclick="showCreditHistory()">历史记录</button>
+                            </div>
+                        </div>
+
+                        <!-- 地址管理 -->
+                        <div class="address-card" onclick="openAddressSlide()">
+                            <div class="address-card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                            </div>
+                            <div class="address-card-text">
+                                <span class="address-card-title">地址管理</span>
+                                <span class="address-card-sub">管理收货地址与宿舍楼</span>
+                            </div>
+                            <svg class="address-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 18l6-6-6-6"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 智能客服 -->
+            <div class="page-content" id="aiServicePage">
+                <div class="ai-page" id="aiPage">
+                    <!-- 顶部 -->
+                    <div class="ai-top">
+                        <div class="ai-top-left">
+                            <svg class="ai-top-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="3" y="4" width="18" height="18" rx="3.5" fill="#FF7D00"/>
+                                <circle cx="8.5" cy="12.5" r="1.2" fill="#fff"/>
+                                <circle cx="12" cy="12" r="1.2" fill="#fff"/>
+                                <circle cx="15.5" cy="12.5" r="1.2" fill="#fff"/>
+                                <rect x="10.5" y="1.5" width="3" height="2.8" rx="1.2" fill="#FF7D00"/>
+                            </svg>
+                            <div class="ai-top-text">
+                                <h2>校易帮智能客服</h2>
+                                <p>基于知识库的智能问答助手</p>
+                            </div>
+                        </div>
+                        <div class="ai-top-right">
+                            <button class="ai-theme-btn" id="aiThemeBtn" onclick="toggleAiTheme()" title="切换深色/浅色模式">
+                                <svg class="ai-theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                                </svg>
+                                <svg class="ai-theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                                </svg>
+                            </button>
+                            <button class="ai-clear-btn" id="aiClearBtn" onclick="clearAiChat()">清空聊天</button>
+                        </div>
+                    </div>
+
+                    <!-- 对话区域 -->
+                    <div class="ai-msgs" id="aiMsgContainer">
+                        <div class="ai-msg-row bot">
+                            <div class="ai-msg-avatar">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+                                    <rect x="3" y="4" width="18" height="18" rx="3.5" fill="#FF7D00"/>
+                                    <circle cx="8.5" cy="12.5" r="1.2" fill="#fff"/>
+                                    <circle cx="12" cy="12" r="1.2" fill="#fff"/>
+                                    <circle cx="15.5" cy="12.5" r="1.2" fill="#fff"/>
+                                    <rect x="10.5" y="1.5" width="3" height="2.8" rx="1.2" fill="#FF7D00"/>
+                                </svg>
+                            </div>
+                            <div class="ai-msg-content">
+                                <div class="ai-msg-bubble">你好！我是校易帮智能客服，有什么可以帮助你的？<br><br><b>功能1：</b>知识库问答<br><b>功能2：</b>信息查询<br>① 查询商品：请输入「我要买XXX商品」进行搜索<br>② 平台发布信息查询：<br><div class="ai-quick-btns"><button class="ai-q-btn" onclick="queryPlatformPosts(1)">平台公告</button><button class="ai-q-btn" onclick="queryPlatformPosts(2)">平台动态</button><button class="ai-q-btn" onclick="queryPlatformPosts(3)">校园资讯</button></div></div>
+                                <div class="ai-msg-time">刚刚</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 输入区域 -->
+                    <div class="ai-input-row">
+                        <textarea class="ai-input" id="aiInput" placeholder="请输入你的问题..." maxlength="500" rows="1" oninput="onAiInput(this)"></textarea>
+                        <button class="ai-send-btn" id="aiSendBtn" onclick="sendAiMsg()" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 模态框：发布任务 -->
+    <div class="modal" id="taskPublishModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>发布任务</h3>
+                <button class="modal-close" onclick="closeModal('taskPublishModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>任务描述</label>
+                    <textarea class="form-textarea" id="taskDesc" placeholder="详细描述任务内容..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>报酬金额</label>
+                        <div class="input-prefix">
+                            <span class="prefix">¥</span>
+                            <input type="number" class="form-input" id="taskReward" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>截止时间</label>
+                        <input type="datetime-local" class="form-input" id="taskDeadline">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>联系方式</label>
+                    <input type="text" class="form-input" id="taskContact" placeholder="手机号/微信号">
+                </div>
+                <div class="balance-hint">
+                    当前可用余额：<strong id="publishBalance">¥0.00</strong>，发布将冻结相应金额
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('taskPublishModal')">取消</button>
+                <button class="btn-primary" onclick="submitTask()">确认发布</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：发布闲置 -->
+    <div class="modal" id="productPublishModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>发布闲置</h3>
+                <button class="modal-close" onclick="closeModal('productPublishModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>交易方式</label>
+                    <div id="transactionTypeGroup">
+                        <label class="radio-item">
+                            <input type="radio" name="transactionType" value="1" checked>
+                            <span class="radio-mark"></span>
+                            卖家上门
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="transactionType" value="2">
+                            <span class="radio-mark"></span>
+                            买家自提
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="transactionType" value="3">
+                            <span class="radio-mark"></span>
+                            自行协商
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group" id="sellerAddressGroup" style="display:none;">
+                    <label>选择地址</label>
+                    <select class="form-select" id="sellerAddressSelect">
+                        <option value="">请选择地址</option>
+                    </select>
+                    <div class="seller-address-empty" id="sellerAddressEmpty" style="display:none;">
+                        <span>暂无地址，请先添加</span>
+                        <a href="javascript:void(0)" class="addr-jump-link" onclick="openAddressSlideAndAdd()">→ 前往添加地址</a>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>商品图片（最多9张）</label>
+                    <input type="file" id="imageUpload" accept="image/*" multiple style="display: none;" onchange="handleImageUpload(this.files)">
+                    <div class="image-upload-grid" id="imageUploadGrid">
+                        <div class="upload-placeholder" onclick="document.getElementById('imageUpload').click()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                            <span>点击上传</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>商品名称</label>
+                    <input type="text" class="form-input" id="goodsName" placeholder="请输入商品名称">
+                </div>
+                <div class="form-group">
+                    <label>商品描述</label>
+                    <textarea class="form-textarea" id="goodsDescription" placeholder="请描述商品的详细信息..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>商品价格</label>
+                        <div class="input-prefix">
+                            <span class="prefix">¥</span>
+                            <input type="number" class="form-input" id="goodsPrice" placeholder="0.00" step="0.01" oninput="updateCommissionDisplay()">
+                        </div>
+                        <div class="commission-info" id="commissionInfo" style="display:none;">
+                            <span class="commission-line">平台佣金(5%): <span id="commissionAmount">-¥0.00</span></span>
+                            <span class="actual-line">实际到手: <span id="actualAmount">¥0.00</span></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>所属分类</label>
+                        <select class="form-select" id="goodsCategory">
+                            <option value="">请选择分类</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>商品库存</label>
+                    <div class="stock-stepper">
+                        <button type="button" class="stock-btn stock-minus" onclick="adjustStock(-1)">−</button>
+                        <input type="number" class="form-input stock-input" id="goodsStock" value="1" min="1" step="1" onchange="validateStockInput()">
+                        <button type="button" class="stock-btn stock-plus" onclick="adjustStock(1)">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('productPublishModal')">取消</button>
+                <button class="btn-primary" onclick="submitGoods()">发布闲置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：任务详情 -->
+    <div class="modal" id="taskDetailModal">
+        <div class="modal-dialog large">
+            <div class="modal-header">
+                <h3>任务详情</h3>
+                <button class="modal-close" onclick="closeModal('taskDetailModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="taskDetailBody"></div>
+        </div>
+    </div>
+
+    <!-- 模态框：商品详情 -->
+    <div class="modal" id="productDetailModal">
+        <div class="modal-dialog gd-dialog">
+            <div class="gd-body-scroll" id="productDetailBody"></div>
+            <div class="gd-action-bar" id="productDetailFooter"></div>
+        </div>
+    </div>
+
+    <!-- 模态框：平台信息详情 -->
+    <div class="modal" id="platformPostModal">
+        <div class="modal-dialog" style="max-width:560px;">
+            <div class="modal-header">
+                <h3 id="postModalTitle">详情</h3>
+                <button class="modal-close" onclick="closeModal('platformPostModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="postModalBody" style="max-height:70vh;overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <!-- 模态框：卖家个人中心 -->
+    <div class="modal" id="sellerProfileModal">
+        <div class="modal-dialog large" style="padding-top:0;">
+            <div class="modal-header" style="min-height:0;padding:4px 16px;border:none;">
+                <button class="modal-close" onclick="closeModal('sellerProfileModal')" style="position:relative;margin-left:auto;">&times;</button>
+            </div>
+            <div class="modal-body" id="sellerProfileBody"></div>
+        </div>
+    </div>
+
+    <!-- 模态框：编辑资料 -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-dialog edit-profile-dialog">
+            <div class="edit-profile-header">
+                <div class="edit-profile-background" id="editProfileBackground" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="edit-profile-cover-actions">
+                        <button class="edit-cover-btn" onclick="document.getElementById('coverUpload').click()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            更换封面
+                        </button>
+                        <input type="file" id="coverUpload" accept="image/*" style="display:none;" onchange="handleCoverUpload(this.files)"/>
+                    </div>
+                    <button class="back-btn" onclick="closeModal('editProfileModal')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button class="save-btn" onclick="saveProfile()">保存</button>
+                    <div class="edit-profile-avatar-section">
+                        <img src="https://campus-easytrade.oss-cn-beijing.aliyuncs.com/337f92f6-885b-470f-b024-7eed296773d4.jpg" alt="头像" class="edit-profile-avatar" id="editProfileAvatar"/>
+                        <button class="edit-avatar-btn" onclick="document.getElementById('editAvatarUpload').click()">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7zm-11-3a3 3 0 1 0-4-6"/>
+                            </svg>
+                            更换头像
+                        </button>
+                        <input type="file" id="editAvatarUpload" accept="image/*" style="display:none;" onchange="handleEditAvatarUpload(this.files)"/>
+                    </div>
+                </div>
+            </div>
+            <div class="edit-profile-body">
+                <div class="edit-form-item" onclick="openNicknameEdit()">
+                    <label>昵称</label>
+                    <div class="edit-form-content">
+                        <span class="edit-text" id="nicknameDisplay">请输入昵称</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="edit-form-item" onclick="openIntroEdit()">
+                    <label>简介</label>
+                    <div class="edit-form-content">
+                        <span class="edit-text" id="introDisplay">请输入简介</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="edit-form-item" onclick="openGenderPicker()">
+                    <label>性别</label>
+                    <div class="edit-form-content">
+                        <span class="edit-text" id="genderDisplay">未知</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="edit-form-item" onclick="openBirthdayPicker()">
+                    <label>生日</label>
+                    <div class="edit-form-content">
+                        <span class="edit-text" id="birthdayDisplay">请选择生日</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="edit-form-item" onclick="openLocationPicker()">
+                    <label>所在地</label>
+                    <div class="edit-form-content">
+                        <span class="edit-text" id="locationDisplay">请选择所在地</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="edit-form-item" onclick="openUsernameEdit()">
+                    <label>用户名</label>
+                    <div class="edit-form-content">
+                        <span class="edit-text" id="usernameDisplay">用户名</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏的输入框用于存储实际值 -->
+    <input type="hidden" id="editNickname"/>
+    <input type="hidden" id="editIntro"/>
+    <input type="hidden" id="editGender"/>
+    <input type="hidden" id="editBirthday"/>
+    <input type="hidden" id="editLocation"/>
+    <input type="hidden" id="editUsername" disabled/>
+
+    <!-- 性别选择器弹窗 -->
+    <div class="picker-modal" id="genderPickerModal">
+        <div class="picker-overlay" onclick="closeGenderPicker()"></div>
+        <div class="picker-container">
+            <div class="picker-header">
+                <button class="picker-cancel" onclick="closeGenderPicker()">取消</button>
+                <button class="picker-confirm" onclick="confirmGender()">确定</button>
+            </div>
+            <div class="picker-content">
+                <div class="picker-wheel">
+                    <div class="picker-option" data-value="1">男</div>
+                    <div class="picker-option" data-value="2">女</div>
+                    <div class="picker-option selected" data-value="3">未知</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 生日选择器弹窗 -->
+    <div class="picker-modal" id="birthdayPickerModal">
+        <div class="picker-overlay" onclick="closeBirthdayPicker()"></div>
+        <div class="picker-container">
+            <div class="picker-header">
+                <button class="picker-cancel" onclick="closeBirthdayPicker()">取消</button>
+                <button class="picker-confirm" onclick="confirmBirthday()">确定</button>
+            </div>
+            <div class="picker-content">
+                <div class="picker-wheel year-wheel" id="yearWheel"></div>
+                <div class="picker-wheel month-wheel" id="monthWheel"></div>
+                <div class="picker-wheel day-wheel" id="dayWheel"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 地区选择器弹窗 -->
+    <div class="picker-modal" id="locationPickerModal">
+        <div class="picker-overlay" onclick="closeLocationPicker()"></div>
+        <div class="picker-container">
+            <div class="picker-header">
+                <button class="picker-cancel" onclick="closeLocationPicker()">取消</button>
+                <button class="picker-confirm" onclick="confirmLocation()">确定</button>
+            </div>
+            <div class="picker-content location-picker">
+                <div class="picker-wheel" id="provinceWheel"></div>
+                <div class="picker-wheel" id="cityWheel"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 昵称编辑弹窗 -->
+    <div class="picker-modal" id="nicknameEditModal">
+        <div class="picker-overlay" onclick="closeNicknameEdit()"></div>
+        <div class="picker-container">
+            <div class="picker-header">
+                <button class="picker-cancel" onclick="closeNicknameEdit()">取消</button>
+                <button class="picker-confirm" onclick="confirmNickname()">确定</button>
+            </div>
+            <div class="picker-content text-edit">
+                <input type="text" class="text-edit-input" id="nicknameInput" placeholder="请输入昵称"/>
+            </div>
+        </div>
+    </div>
+
+    <!-- 简介编辑弹窗 -->
+    <div class="picker-modal" id="introEditModal">
+        <div class="picker-overlay" onclick="closeIntroEdit()"></div>
+        <div class="picker-container">
+            <div class="picker-header">
+                <button class="picker-cancel" onclick="closeIntroEdit()">取消</button>
+                <button class="picker-confirm" onclick="confirmIntro()">确定</button>
+            </div>
+            <div class="picker-content text-edit">
+                <input type="text" class="text-edit-input" id="introInput" placeholder="请输入简介"/>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户名编辑弹窗 -->
+    <div class="picker-modal" id="usernameEditModal">
+        <div class="picker-overlay" onclick="closeUsernameEdit()"></div>
+        <div class="picker-container">
+            <div class="picker-header">
+                <button class="picker-cancel" onclick="closeUsernameEdit()">取消</button>
+                <button class="picker-confirm" onclick="confirmUsername()">确定</button>
+            </div>
+            <div class="picker-content text-edit">
+                <input type="text" class="text-edit-input" id="usernameInput" placeholder="请输入用户名"/>
+            </div>
+        </div>
+    </div>
+
+    <!-- 头像裁剪弹窗 -->
+    <div class="picker-modal" id="avatarCropModal">
+        <div class="picker-overlay"></div>
+        <div class="picker-container crop-container">
+            <div class="crop-header">
+                <button class="crop-cancel" onclick="closeAvatarCrop()">取消</button>
+                <div class="crop-title">裁剪</div>
+                <button class="crop-save" onclick="confirmAvatarCrop()">确定</button>
+            </div>
+            <div class="crop-body">
+                <div class="crop-area circle-crop" id="avatarCropArea">
+                    <div class="crop-image-container" id="avatarCropContainer">
+                        <img id="avatarCropImage" draggable="false"/>
+                    </div>
+                    <div class="crop-mask"></div>
+                    <div class="crop-frame"></div>
+                </div>
+            </div>
+            <div class="crop-footer">
+                <button class="crop-action" onclick="rotateAvatar()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17.7 7.7C16.5 5.3 13.8 4 12 4C6.5 4 2 8.5 2 14s4.5 10 10 10s10-4.5 10-10h-2a8 8 0 10-8.3 7.7V14"/>
+                        <path d="M12 8V12L9 9"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 背景图裁剪弹窗 -->
+    <div class="picker-modal" id="bgCropModal">
+        <div class="picker-overlay"></div>
+        <div class="picker-container crop-container">
+            <div class="crop-header">
+                <button class="crop-cancel" onclick="closeBgCrop()">取消</button>
+                <div class="crop-title">裁剪</div>
+                <button class="crop-save" onclick="confirmBgCrop()">确定</button>
+            </div>
+            <div class="crop-body">
+                <div class="crop-area rect-crop" id="bgCropArea">
+                    <div class="crop-image-container" id="bgCropContainer">
+                        <img id="bgCropImage" draggable="false"/>
+                    </div>
+                    <div class="crop-mask"></div>
+                    <div class="crop-frame"></div>
+                </div>
+            </div>
+            <div class="crop-footer">
+                <button class="crop-action" onclick="rotateBg()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17.7 7.7C16.5 5.3 13.8 4 12 4C6.5 4 2 8.5 2 14s4.5 10 10 10s10-4.5 10-10h-2a8 8 0 10-8.3 7.7V14"/>
+                        <path d="M12 8V12L9 9"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改密码弹窗 -->
+    <div class="modal" id="changePasswordModal">
+        <div class="modal-dialog" style="max-width:420px;">
+            <div class="modal-header">
+                <h3 id="changePwdTitle">验证身份</h3>
+                <button class="modal-close" onclick="closeModal('changePasswordModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:20px 24px 24px;">
+                <!-- 步骤1：邮箱验证 -->
+                <div id="changePwdStep1">
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <input type="text" class="form-input" id="changePwdEmail" readonly
+                               style="background:#f5f5f5;color:#666;cursor:not-allowed;">
+                    </div>
+                    <div class="form-group">
+                        <label>验证码</label>
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" class="form-input" id="changePwdCode" placeholder="请输入6位验证码"
+                                   maxlength="6" autocomplete="off" style="flex:1;">
+                            <button class="btn-secondary" id="changePwdSendCodeBtn" onclick="sendChangePwdCode()"
+                                    style="white-space:nowrap;padding:8px 16px;flex-shrink:0;">发送验证码</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 步骤2：设置新密码 -->
+                <div id="changePwdStep2" style="display:none;">
+                    <div class="form-group">
+                        <label>新密码</label>
+                        <input type="password" class="form-input" id="changePwdNewPwd" placeholder="请输入新密码（6-20位）" maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <label>确认密码</label>
+                        <input type="password" class="form-input" id="changePwdConfirmPwd" placeholder="请再次输入新密码" maxlength="20">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content:center;gap:12px;">
+                <button class="btn-secondary" id="changePwdCancelBtn" onclick="closeModal('changePasswordModal')">取消</button>
+                <button class="btn-primary" id="changePwdNextBtn" onclick="handleChangePwdNext()"
+                        style="min-width:100px;">下一步</button>
+                <button class="btn-primary" id="changePwdConfirmBtn" onclick="confirmChangePwd()"
+                        style="min-width:100px;display:none;">确认修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 申诉确认弹窗 -->
+    <div class="modal" id="appealConfirmModal">
+        <div class="modal-dialog" style="max-width:400px;">
+            <div class="modal-header">
+                <h3>确认申诉</h3>
+                <button class="modal-close" onclick="closeModal('appealConfirmModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align:center;padding:8px 24px 16px;">
+                <p style="font-size:14px;color:#666;margin:0 0 16px;">确定要对当前商品发起申诉吗？</p>
+                <div class="appeal-count-box">
+                    <span class="appeal-count-label">剩余申诉次数</span>
+                    <span class="appeal-count-num" id="appealRemainingCount">0</span>
+                    <span class="appeal-count-label">次</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content:center;">
+                <button class="btn-secondary" onclick="closeModal('appealConfirmModal')">取消</button>
+                <button class="btn-primary" id="appealConfirmBtn" onclick="confirmAppeal()">确认申诉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 申诉内容填写弹窗 -->
+    <div class="modal" id="appealContentModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>填写申诉理由</h3>
+                <button class="modal-close" onclick="closeModal('appealContentModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13px;color:#999;margin:0 0 12px;">请详细说明您的情况（10~500 个字符）</p>
+                <div style="position:relative;">
+                    <textarea id="appealContentInput" placeholder="请描述您的申诉理由..." maxlength="500" style="width:100%;min-height:140px;padding:12px 14px;font-size:14px;line-height:1.7;border:1px solid #e5e5e5;border-radius:8px;background:#fafafa;color:#333;resize:vertical;outline:none;font-family:inherit;box-sizing:border-box;"></textarea>
+                    <div style="text-align:right;font-size:12px;color:#bbb;margin-top:4px;">
+                        <span id="appealCharCount" style="color:#FF7D00;font-weight:600;">0</span> / 500
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('appealContentModal')">取消</button>
+                <button class="btn-primary" onclick="submitAppealContent()">提交申诉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 违规详情弹窗 -->
+    <div class="modal" id="interceptDetailModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>违规详情</h3>
+                <button class="modal-close" onclick="closeModal('interceptDetailModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:8px 24px 12px;" id="interceptDetailBody">
+                <!-- JS动态渲染 -->
+            </div>
+            <div class="modal-footer" style="gap:10px;">
+                <button class="btn-appeal-simple" id="goAppealBtn" onclick="goAppealFromIntercept()">去申诉</button>
+                <button class="btn-secondary" onclick="closeModal('interceptDetailModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：申诉详情 -->
+    <div class="modal" id="appealDetailModal">
+        <div class="modal-dialog small">
+            <div class="modal-header">
+                <h3>申诉详情</h3>
+                <button class="modal-close" id="appealDetailHeaderClose" onclick="closeModal('appealDetailModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="appealDetailBody"></div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="appealDetailConfirmBtn" onclick="confirmBlock()">确认</button>
+                <button class="btn-secondary" id="appealDetailCloseBtn" onclick="closeModal('appealDetailModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：关联订单（大订单详情） -->
+    <div class="modal" id="paymentGroupModal">
+        <div class="modal-dialog large">
+            <div class="modal-header">
+                <h3>关联订单</h3>
+                <button class="modal-close" onclick="closePaymentGroupModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="paymentGroupBody">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast提示 -->
+    <div class="toast" id="toast">
+        <span class="toast-icon"></span>
+        <span class="toast-message"></span>
+    </div>
+
+    <!-- 底部导航栏（移动端） -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="bottom-nav-item active" data-page="home" onclick="switchPage('home')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>首页</span>
+        </button>
+        <button class="bottom-nav-item" data-page="market" onclick="switchPage('market')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>商城</span>
+        </button>
+        <button class="bottom-nav-item" data-page="publish" onclick="openModal('productPublishModal')">
+            <div class="nav-publish-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+            <span>发布</span>
+        </button>
+        <button class="bottom-nav-item" data-page="messages" onclick="switchPage('messages')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H4z"/><path d="M4 8l8 4 8-4"/></svg>
+            <span>消息</span>
+        </button>
+        <button class="bottom-nav-item" data-page="profile" onclick="switchPage('profile')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+            <span>我的</span>
+        </button>
+    </nav>
+
+    <!-- 导航侧边卡片遮罩 -->
+    <div class="nav-overlay" id="navOverlay" onclick="closeNavSide()"></div>
+    
+    <!-- 导航侧边卡片 -->
+    <div class="nav-side-card" id="navSideCard">
+        <div class="nav-side-header">
+            <div class="nav-side-logo">
+                <svg class="logo-icon" viewBox="0 0 32 32" fill="none">
+                    <path d="M8 14L16 8l8 6v12H8V14z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                    <path d="M12 22v-5h8v5" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <button class="nav-side-close" onclick="closeNavSide()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="nav-side-list">
+            <a href="#" class="nav-side-item active" data-page="home" onclick="showPage('home'); closeNavSide(); return false;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                <span>平台主页</span>
+            </a>
+            <a href="#" class="nav-side-item" data-page="market" onclick="showPage('market'); closeNavSide(); return false;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+                <span>杂货铺</span>
+            </a>
+            <a href="#" class="nav-side-item" data-page="fleamarket" onclick="showPage('fleamarket'); closeNavSide(); return false;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M2 12h20"/>
+                    <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                </svg>
+                <span>校园虚拟跳蚤市场</span>
+            </a>
+            <a href="#" class="nav-side-item" data-page="help" onclick="showPage('help'); closeNavSide(); return false;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span>帮助与客服</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- 侧滑卡片遮罩 -->
+    <div class="slide-overlay" id="slideOverlay" onclick="closeSlideCard()"></div>
+
+    <!-- 我的任务侧滑卡片 -->
+    <div class="slide-card" id="myTasksSlide">
+        <div class="slide-card-header">
+            <h3>我的任务</h3>
+            <button class="slide-close-btn" onclick="closeSlideCard()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="slide-card-search">
+            <input type="text" class="search-input" id="myTasksSearch" placeholder="搜索任务..." oninput="filterMyTasks()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+            </svg>
+        </div>
+        <div class="slide-card-tabs">
+            <button class="slide-tab active" data-tab="published" onclick="switchMyTasksTab('published')">发布中</button>
+            <button class="slide-tab" data-tab="offline" onclick="switchMyTasksTab('offline')">已下架</button>
+        </div>
+        <div class="slide-card-content" id="myTasksContent"></div>
+    </div>
+
+    <!-- 交易订单侧滑卡片 -->
+    <div class="slide-card" id="myAcceptedTasksSlide">
+        <div class="slide-card-header">
+            <h3>交易订单</h3>
+            <button class="slide-close-btn" onclick="closeSlideCard()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="order-trade-tabs">
+            <div class="order-main-tabs">
+                <button class="order-main-tab active" data-role="sell" onclick="switchOrderRole('sell')">我卖出的</button>
+                <button class="order-main-tab" data-role="buy" onclick="switchOrderRole('buy')">我买到的</button>
+            </div>
+            <div class="order-sub-tabs" id="orderSubTabs">
+                <button class="order-sub-tab active" data-status="" onclick="switchOrderStatus('')">全部</button>
+                <button class="order-sub-tab" data-status="0" onclick="switchOrderStatus('0')">待付款</button>
+                <button class="order-sub-tab" data-status="1" onclick="switchOrderStatus('1')">待发货</button>
+                <button class="order-sub-tab" data-status="2" onclick="switchOrderStatus('2')">待收货</button>
+                <button class="order-sub-tab" data-status="3" onclick="switchOrderStatus('3')">已完成</button>
+                <button class="order-sub-tab" data-status="4" onclick="switchOrderStatus('4')">已取消</button>
+                <button class="order-sub-tab" data-status="5" onclick="switchOrderStatus('5')">退款中</button>
+                <button class="order-sub-tab" data-status="6" onclick="switchOrderStatus('6')">已退款</button>
+            </div>
+        </div>
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <input type="text" class="search-input" id="orderSearch" placeholder="搜索订单商品..." oninput="searchOrders()">
+                <button class="search-btn" onclick="searchOrders()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="slide-card-content" id="myAcceptedTasksContent"></div>
+    </div>
+
+    <!-- 我的闲置侧滑卡片 -->
+    <div class="slide-card" id="myProductsSlide">
+        <div class="slide-card-header">
+            <h3>我的闲置</h3>
+            <button class="slide-close-btn" onclick="closeSlideCard()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <input type="text" class="search-input" id="myProductsSearch" placeholder="搜索闲置..." oninput="filterMyProducts()">
+                <button class="search-btn" onclick="filterMyProducts()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="slide-card-tabs">
+            <button class="slide-tab active" data-tab="published" onclick="switchMyProductsTab('published')">已上架</button>
+            <button class="slide-tab" data-tab="offline" onclick="switchMyProductsTab('offline')">已下架</button>
+            <button class="slide-tab" data-tab="disabled" onclick="switchMyProductsTab('disabled')">违规商品</button>
+            <button class="slide-tab" data-tab="pending_review" onclick="switchMyProductsTab('pending_review')">审核待处理</button>
+            <button class="slide-tab" data-tab="appeal_review" onclick="switchMyProductsTab('appeal_review')">申诉待处理</button>
+            <button class="edit-mode-btn" id="myProductsEditBtn" onclick="toggleMyProductsEditMode()" style="display:none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                批量管理
+            </button>
+        </div>
+        <div class="slide-card-content" id="myProductsContent"></div>
+    </div>
+
+    <!-- 地址管理侧滑卡片 -->
+    <div class="slide-card" id="addressSlide">
+        <div class="slide-card-header">
+            <h3>地址管理</h3>
+            <button class="slide-close-btn" onclick="closeAddressSlide()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="address-slide-body" id="addressSlideBody">
+            <!-- 地址簿列表 -->
+            <div class="address-section">
+                <div class="address-section-header">
+                    <h4>收货地址</h4>
+                    <button class="btn-address-add" onclick="showAddressForm()">+ 新增</button>
+                </div>
+                <div class="address-list" id="addressList">
+                    <div class="loading-placeholder">加载中...</div>
+                </div>
+            </div>
+
+            <!-- 宿舍楼管理 -->
+            <div class="address-section">
+                <div class="address-section-header">
+                    <h4>宿舍楼 <span class="address-section-tip">请和我一起共建学校公用宿舍楼地址吧！</span></h4>
+                    <button class="btn-address-add" onclick="showDormitoryCreate()">+ 新建</button>
+                </div>
+                <div class="dormitory-list" id="dormitoryList">
+                    <div class="loading-placeholder">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 信誉历史侧滑卡片 -->
+    <div class="slide-card" id="creditHistorySlide">
+        <div class="slide-card-header">
+            <h3>信誉历史</h3>
+            <button class="slide-close-btn" onclick="closeSlideCard()">&times;</button>
+        </div>
+        <div class="slide-card-content" id="creditHistoryContent">
+            <div class="loading-placeholder">加载中...</div>
+        </div>
+    </div>
+
+    <!-- 地址表单弹窗 -->
+    <div class="modal" id="addressFormModal">
+        <div class="modal-dialog small">
+            <div class="modal-header">
+                <h3 id="addressFormTitle">新增地址</h3>
+                <button class="modal-close" onclick="closeAddressForm()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>大学</label>
+                    <div class="form-display" id="addressUniversityRow">
+                        <span class="form-display-text" id="addressUniversityName"></span>
+                        <a class="form-display-bind" id="addressUniversityBind" onclick="goBindUniversity()">去绑定→</a>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>大学详细地址</label>
+                    <input type="text" class="form-input" id="addressUniversityAddr" placeholder="除省市区外的详细地址">
+                </div>
+                <div class="form-group">
+                    <label>宿舍楼</label>
+                    <select class="form-select" id="addressDormitorySelect">
+                        <option value="">请选择宿舍楼</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>宿舍详细地址</label>
+                    <input type="text" class="form-input" id="addressDetailInput" placeholder="如：4号楼 320室">
+                </div>
+                <div class="form-group">
+                    <label>联系人姓名</label>
+                    <input type="text" class="form-input" id="addressNameInput" placeholder="请输入姓名">
+                </div>
+                <div class="form-group">
+                    <label>联系电话</label>
+                    <input type="text" class="form-input" id="addressPhoneInput" placeholder="请输入电话">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAddressForm()">取消</button>
+                <button class="btn-primary" onclick="submitAddressForm()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 宿舍楼创建弹窗 -->
+    <div class="modal" id="dormitoryCreateModal">
+        <div class="modal-dialog dormitory-dialog">
+            <div class="modal-header">
+                <h3>新建宿舍楼</h3>
+                <button class="modal-close" onclick="closeDormitoryCreateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>宿舍楼名称</label>
+                    <input type="text" class="form-input" id="dormitoryNameInput" placeholder="如：梅园1号楼">
+                </div>
+                <div class="form-group">
+                    <label>在地图上选择位置</label>
+                    <div class="dormitory-map-container" id="dormitoryMapContainer">
+                        <div class="dormitory-map-pin">📍</div>
+                    </div>
+                    <button class="dormitory-map-locate" onclick="locateDormitoryCreate()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                            <circle cx="12" cy="9" r="2.5"/>
+                        </svg>
+                        我的位置
+                    </button>
+                    <div class="dormitory-location" id="dormitoryCreateLocation">拖动地图或点击选择位置</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDormitoryCreateModal()">取消</button>
+                <button class="btn-primary" onclick="submitDormitoryCreate()">确认创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 宿舍楼修改弹窗 -->
+    <div class="modal" id="dormitoryEditModal">
+        <div class="modal-dialog dormitory-dialog">
+            <div class="modal-header">
+                <h3>修改宿舍楼</h3>
+                <button class="modal-close" onclick="closeDormitoryEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>宿舍楼名称</label>
+                    <input type="text" class="form-input" id="editDormitoryNameInput">
+                </div>
+                <div class="form-group">
+                    <label>在地图上选择位置</label>
+                    <div class="dormitory-map-container" id="editDormitoryMapContainer">
+                        <div class="dormitory-map-pin">📍</div>
+                    </div>
+                    <button class="dormitory-map-locate" onclick="locateDormitoryEdit()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                            <circle cx="12" cy="9" r="2.5"/>
+                        </svg>
+                        我的位置
+                    </button>
+                    <div class="dormitory-location" id="editDormitoryLocation">拖动地图或点击选择位置</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDormitoryEditModal()">取消</button>
+                <button class="btn-primary" onclick="submitDormitoryEdit()">确认修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 聊天选择商品弹窗 -->
+    <div class="modal" id="chatOrderPickerModal" onclick="if(event.target===this)closeChatOrderPicker()">
+        <div class="modal-dialog chat-order-picker-dialog">
+            <div class="modal-header">
+                <h3>选择商品</h3>
+                <button class="modal-close" onclick="closeChatOrderPicker()">&times;</button>
+            </div>
+            <div class="modal-body" id="chatOrderList">
+                <div class="loading-placeholder">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/user.js"></script>
+
+    <!-- 优雅下线过渡界面 -->
+    <div class="elegant-logout-overlay" id="elegantLogoutOverlay">
+        <div class="elegant-logout-container">
+            <div class="logout-icon-wrapper">
+                <div class="logout-icon">🔒</div>
+                <div class="pulse-ring"></div>
+            </div>
+            
+            <h2 class="logout-title" id="logoutTitle">账号状态异常</h2>
+            <p class="logout-message" id="logoutMessage">您的账号状态发生变更，需要重新登录</p>
+            
+            <div class="countdown-section">
+                <div class="countdown-bar">
+                    <div class="countdown-progress" id="countdownProgress"></div>
+                </div>
+                <span class="countdown-text">
+                    <span id="countdownNumber">5</span> 秒后自动跳转到登录页...
+                </span>
+            </div>
+
+            <button class="btn-immediate-login" onclick="immediateRedirectToLoginUser()">
+                立即重新登录 →
+            </button>
+        </div>
+    </div>
+
+    <!-- 支付弹窗 -->
+    <div class="co-addr-overlay" id="payOverlay" style="display:none;">
+        <div id="payModal">
+            <button id="payCloseBtn" onclick="closePayModal()">&times;</button>
+            <h3>支付宝支付</h3>
+            <div class="pay-subtitle">请使用支付宝扫码完成支付</div>
+            <div id="payQrContainer">
+                <div class="pay-loading"></div>
+            </div>
+            <div style="font-size:12px;color:#999;margin:-8px 0 12px;line-height:1.6;">二维码有效期30分钟<br>请尽快完成付款</div>
+            <div id="payAmount"></div>
+            <div class="pay-order-info">共 <span id="payOrderCount"></span> 订单</div>
+            <div class="pay-status-text" id="payStatusText">获取二维码中...</div>
+            <div class="pay-modal-actions">
+                <button id="payCancelBtn" onclick="cancelPayment()">取消支付</button>
+                <button id="paySuccessBtn" onclick="closePaymentModal();showPage('cart');openMyAcceptedTasksSlide();">已完成支付</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录失效弹窗 -->
+</body>
+</html>

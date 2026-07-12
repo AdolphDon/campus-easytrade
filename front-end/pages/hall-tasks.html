@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>校易通 - 任务大厅</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <div class="app-container hall-page">
+        <header class="hall-header">
+            <a href="user.html" class="back-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <h1 class="hall-title">任务大厅</h1>
+            <button class="publish-btn-header" onclick="showTaskPublish()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+            </button>
+        </header>
+
+        <main class="hall-content">
+            <div class="tab-header">
+                <button class="sub-tab-btn active" data-filter="all" onclick="filterTasks('all')">全部</button>
+                <button class="sub-tab-btn" data-filter="pending" onclick="filterTasks('pending')">待接单</button>
+                <button class="sub-tab-btn" data-filter="ongoing" onclick="filterTasks('ongoing')">进行中</button>
+                <button class="sub-tab-btn" data-filter="completed" onclick="filterTasks('completed')">已完成</button>
+            </div>
+
+            <div class="filter-bar">
+                <select class="filter-select" id="taskSort" onchange="loadTasks()">
+                    <option value="time">按时间排序</option>
+                    <option value="price">按金额排序</option>
+                </select>
+            </div>
+
+            <div class="task-list full" id="fullTaskList">
+                <div class="loading-placeholder">加载中...</div>
+            </div>
+        </main>
+
+        <div class="modal" id="taskPublishModal">
+            <div class="modal-content slide-up">
+                <div class="modal-header">
+                    <h3>发布任务</h3>
+                    <button class="modal-close" onclick="closeModal('taskPublishModal')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">任务描述</label>
+                        <textarea class="form-textarea" id="taskDesc" placeholder="详细描述任务内容..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">报酬金额</label>
+                            <div class="input-prefix">
+                                <span class="prefix">¥</span>
+                                <input type="number" class="form-input" id="taskReward" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">截止时间</label>
+                            <input type="datetime-local" class="form-input" id="taskDeadline">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">联系方式</label>
+                        <input type="text" class="form-input" id="taskContact" placeholder="手机号/微信号">
+                    </div>
+                    <div class="balance-hint" id="balanceHint">
+                        <span class="hint-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="16" x2="12" y2="12"/>
+                                <line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                        </span>
+                        <span>当前可用余额：<strong id="publishBalance">¥0.00</strong>，发布将冻结相应金额</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="closeModal('taskPublishModal')">取消</button>
+                    <button class="btn-primary" onclick="submitTask()">确认发布</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="taskDetailModal">
+            <div class="modal-content slide-up large">
+                <div class="modal-header">
+                    <h3>任务详情</h3>
+                    <button class="modal-close" onclick="closeModal('taskDetailModal')">×</button>
+                </div>
+                <div class="modal-body" id="taskDetailBody">
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="ratingModal">
+            <div class="modal-content slide-up">
+                <div class="modal-header">
+                    <h3>评价</h3>
+                    <button class="modal-close" onclick="closeModal('ratingModal')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="rating-stars" id="ratingStars">
+                        <span class="star" data-rating="1">☆</span>
+                        <span class="star" data-rating="2">☆</span>
+                        <span class="star" data-rating="3">☆</span>
+                        <span class="star" data-rating="4">☆</span>
+                        <span class="star" data-rating="5">☆</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">评价内容</label>
+                        <textarea class="form-textarea" id="ratingContent" placeholder="分享你的使用体验..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="closeModal('ratingModal')">取消</button>
+                    <button class="btn-primary" onclick="submitRating()">提交评价</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="toast" id="toast">
+            <span class="toast-icon"></span>
+            <span class="toast-message"></span>
+        </div>
+
+        <script src="../js/api.js"></script>
+        <script src="../js/hall-tasks.js"></script>
+    </div>
+</body>
+</html>

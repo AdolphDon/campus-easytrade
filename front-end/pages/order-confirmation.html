@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>确认订单 - 校易帮</title>
+  <!-- Element Plus CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus/dist/index.css">
+  <style>
+    /* ===== 全局重置 ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      --el-color-primary: #FF7D00;
+    }
+
+    /* ===== 页面容器 ===== */
+    .co-page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+
+    /* ===== 进度条 ===== */
+    .co-steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    .co-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .co-step-dot {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: #f0f0f0;
+      color: #999;
+      transition: all 0.3s;
+    }
+    .co-step.active .co-step-dot { background: #FF7D00; color: #fff; }
+    .co-step.current .co-step-dot { box-shadow: 0 0 0 4px rgba(255,125,0,0.2); }
+    .co-step-label { font-size: 13px; color: #999; white-space: nowrap; }
+    .co-step.current .co-step-label { color: #FF7D00; font-weight: 600; }
+    .co-step-line {
+      width: 80px;
+      height: 2px;
+      background: #f0f0f0;
+      margin: 0 8px 28px;
+      transition: background 0.3s;
+    }
+    .co-step-line.active { background: #FF7D00; }
+
+    /* ===== 主体 ===== */
+    .co-body { display: flex; gap: 24px; align-items: flex-start; }
+    .co-left { flex: 0 0 70%; max-width: 70%; display: flex; flex-direction: column; gap: 24px; }
+    .co-right { flex: 0 0 calc(30% - 24px); max-width: calc(30% - 24px); display: flex; flex-direction: column; gap: 24px; }
+
+    /* ===== 卡片 ===== */
+    .co-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .co-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .co-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .co-card-title .co-icon { width: 18px; height: 18px; color: #FF7D00; }
+    .co-card-sub { font-size: 13px; color: #999; }
+
+    /* ===== 收货地址 ===== */
+    .co-address-list { display: flex; flex-direction: column; gap: 12px; }
+    .co-address-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1.5px solid #eee;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .co-address-item:hover { border-color: #FF7D00; }
+    .co-address-item.selected { border-color: #FF7D00; background: rgba(255,125,0,0.03); }
+    .co-addr-radio {
+      width: 18px; height: 18px; border-radius: 50%; border: 2px solid #d0d0d0;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      margin-top: 2px; transition: all 0.2s;
+    }
+    .co-address-item.selected .co-addr-radio { border-color: #FF7D00; }
+    .co-addr-radio-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF7D00; }
+    .co-addr-info { flex: 1; min-width: 0; }
+    .co-addr-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .co-addr-name { font-size: 14px; font-weight: 600; }
+    .co-addr-phone { font-size: 13px; color: #666; }
+    .co-addr-tag {
+      font-size: 11px; background: rgba(255,125,0,0.1); color: #FF7D00;
+      padding: 1px 8px; border-radius: 4px; font-weight: 500;
+    }
+    .co-addr-detail { font-size: 13px; color: #888; line-height: 1.4; }
+    .co-addr-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+    /* ===== 商品 ===== */
+    .co-seller-group { margin-bottom: 16px; }
+    .co-seller-group:last-child { margin-bottom: 0; }
+    .co-seller-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 0; border-bottom: 1px solid #f0f0f0; margin-bottom: 12px;
+    }
+    .co-seller-name { font-size: 14px; font-weight: 500; color: #333; }
+    .co-order-item {
+      display: flex; align-items: center; gap: 16px;
+      padding: 12px 0; border-bottom: 1px solid #f5f5f5;
+    }
+    .co-order-item:last-child { border-bottom: none; }
+    .co-item-img {
+      width: 72px; height: 72px; border-radius: 8px;
+      flex-shrink: 0; background: #f5f5f5; object-fit: cover;
+    }
+    .co-img-placeholder {
+      width: 72px; height: 72px; display: flex; align-items: center;
+      justify-content: center; background: #f5f5f5; color: #bbb;
+      font-size: 11px; text-align: center; border-radius: 8px;
+    }
+    .co-item-info { flex: 1; min-width: 0; }
+    .co-item-name {
+      font-size: 14px; margin-bottom: 6px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; line-height: 1.4;
+    }
+    .co-item-price { font-size: 13px; color: #888; }
+    .co-item-qty { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .co-qty-num { font-size: 14px; font-weight: 500; min-width: 20px; text-align: center; }
+    .co-item-subtotal {
+      width: 100px; text-align: right; font-size: 15px; font-weight: 600;
+      color: #FF4D4F; flex-shrink: 0;
+    }
+
+    /* ===== 结算摘要 ===== */
+    .co-summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 14px; color: #333; margin-bottom: 12px;
+    }
+    .co-price { font-weight: 600; color: #FF4D4F; }
+    .co-price-free { color: #52c41a; font-weight: 400; }
+    .co-summary-total { font-size: 16px; }
+    .co-price-total { font-size: 20px; }
+
+    /* ===== 支付方式 / 发票 ===== */
+    .co-pay-group, .co-invoice-group { display: flex; flex-direction: column; gap: 10px; }
+    .co-pay-option {
+      display: flex; align-items: center; gap: 8px; font-size: 14px;
+    }
+    .co-pay-option .co-icon { width: 20px; height: 20px; }
+
+    /* ===== 提交按钮 ===== */
+    .co-submit-btn {
+      width: 100%; height: 48px; font-size: 16px;
+      border-radius: 12px !important;
+    }
+    .co-submit-btn:hover {
+      background: #e66d00 !important;
+      border-color: #e66d00 !important;
+    }
+    .co-pay-radio-item { display: flex; align-items: center; width: 100%; }
+    .co-pay-radio-item .el-radio { width: 100%; }
+    .co-invoice-item { display: flex; align-items: center; width: 100%; }
+    .co-invoice-item .el-radio { width: 100%; }
+
+    /* ===== 响应式 ===== */
+    @media (max-width: 900px) {
+      .co-body { flex-direction: column; }
+      .co-left, .co-right { flex: none; max-width: 100%; width: 100%; }
+      .co-step-line { width: 40px; }
+    }
+      /* ===== Modal (payment group detail) ===== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    .modal.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .modal-dialog {
+      background: #fff;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: scale(0.95);
+      transition: transform 0.3s;
+    }
+    .modal.active .modal-dialog { transform: scale(1); }
+    .modal-dialog.large { max-width: 640px; }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      flex-shrink: 0;
+    }
+    .modal-header h3 { font-size: 16px; font-weight: 600; }
+    .modal-close {
+      width: 32px; height: 32px; display: flex; align-items: center;
+      justify-content: center; font-size: 24px; color: #999;
+      border-radius: 8px; transition: all 0.2s; cursor: pointer; background: none; border: none;
+    }
+    .modal-close:hover { background: #f5f5f5; color: #333; }
+    .modal-body {
+      padding: 20px;
+      flex: 1 1 auto;
+      overflow-y: auto;
+      min-height: 0;
+    }
+    .loading-placeholder {
+      text-align: center; padding: 40px 0; color: #999; font-size: 14px;
+    }
+</style>
+</head>
+<body>
+  <div id="app">
+    <div class="co-page">
+
+      <!-- ===== 进度条 ===== -->
+      <div class="co-steps">
+        <div class="co-step" :class="{ active: step >= 1, current: step === 1 }">
+          <div class="co-step-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div>
+          <span class="co-step-label">购物车</span>
+        </div>
+        <div class="co-step-line" :class="{ active: step >= 2 }" />
+        <div class="co-step" :class="{ active: step >= 2, current: step === 2 }">
+          <div class="co-step-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+          <span class="co-step-label">确认订单</span>
+        </div>
+        <div class="co-step-line" :class="{ active: step >= 3 }" />
+        <div class="co-step" :class="{ active: step >= 3, current: step === 3 }">
+          <div class="co-step-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+          <span class="co-step-label">支付</span>
+        </div>
+        <div class="co-step-line" :class="{ active: step >= 4 }" />
+        <div class="co-step" :class="{ active: step >= 4, current: step === 4 }">
+          <div class="co-step-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <span class="co-step-label">完成</span>
+        </div>
+      </div>
+
+      <!-- ===== 主体 ===== -->
+      <div class="co-body">
+
+        <!-- ===== 左栏 ===== -->
+        <div class="co-left">
+
+          <!-- 收货地址 -->
+          <div class="co-card">
+            <div class="co-card-header">
+              <div class="co-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="co-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>收货地址</span>
+              </div>
+              <el-button text type="primary" size="small" @click="openAddAddress">
+                + 新增地址
+              </el-button>
+            </div>
+            <div class="co-address-list">
+              <div v-for="addr in addresses" :key="addr.id"
+                class="co-address-item" :class="{ selected: selectedAddressId === addr.id }"
+                @click="selectedAddressId = addr.id">
+                <div class="co-addr-radio">
+                  <div v-if="selectedAddressId === addr.id" class="co-addr-radio-dot" />
+                </div>
+                <div class="co-addr-info">
+                  <div class="co-addr-top">
+                    <span class="co-addr-name">{{ addr.name }}</span>
+                    <span class="co-addr-phone">{{ addr.phone }}</span>
+                    <span v-if="addr.isDefault === 1" class="co-addr-tag">默认</span>
+                  </div>
+                  <div class="co-addr-detail">{{ addr.schoolName }} {{ addr.dormitoryName }} {{ addr.detailAddress }}</div>
+                </div>
+                <div class="co-addr-actions">
+                  <el-button text size="small" @click.stop="editAddress(addr)">修改</el-button>
+                  <el-button text size="small" type="danger" @click.stop="deleteAddress(addr)">删除</el-button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 商品 -->
+          <div class="co-card">
+            <div class="co-card-header">
+              <div class="co-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="co-icon"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                <span>确认商品</span>
+              </div>
+              <span class="co-card-sub">共 {{ totalCount }} 件商品</span>
+            </div>
+
+            <div v-for="(group, gi) in sellerGroups" :key="gi" class="co-seller-group">
+              <div class="co-seller-header">
+                <el-avatar :size="28" :src="group.sellerAvatar">
+                  {{ group.sellerNickname?.[0] }}
+                </el-avatar>
+                <span class="co-seller-name">{{ group.sellerNickname }}</span>
+              </div>
+              <div v-for="item in group.items" :key="item.goodsId" class="co-order-item">
+                <img v-if="item.firstImage" :src="item.firstImage" class="co-item-img" @error="$event.target.style.display='none'">
+                <div v-else class="co-img-placeholder">暂无图片</div>
+                <div class="co-item-info">
+                  <div class="co-item-name">{{ item.goodsName }}</div>
+                  <div class="co-item-price">¥{{ item.price.toFixed(2) }}</div>
+                </div>
+                <div class="co-item-qty">
+                  <el-button circle size="small" @click="decreaseQty(item)">−</el-button>
+                  <span class="co-qty-num">{{ item.quantity }}</span>
+                  <el-button circle size="small" @click="increaseQty(item)">+</el-button>
+                </div>
+                <div class="co-item-subtotal">¥{{ (item.price * item.quantity).toFixed(2) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 右栏 ===== -->
+        <div class="co-right">
+
+          <!-- 结算 -->
+          <div class="co-card">
+            <div class="co-card-header">
+              <div class="co-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="co-icon"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span>订单结算</span>
+              </div>
+            </div>
+            <div class="co-summary-row">
+              <span>商品小计</span>
+              <span class="co-price">¥{{ totalPrice.toFixed(2) }}</span>
+            </div>
+            <div class="co-summary-row">
+              <span>配送费</span>
+              <span class="co-price co-price-free">免配送费</span>
+            </div>
+            <el-divider style="margin:12px 0" />
+            <div class="co-summary-row co-summary-total">
+              <span>合计</span>
+              <span class="co-price co-price-total">¥{{ totalPrice.toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <!-- 支付方式 -->
+          <div class="co-card">
+            <div class="co-card-header">
+              <div class="co-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="co-icon"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                <span>支付方式</span>
+              </div>
+            </div>
+            <el-radio-group v-model="paymentMethod" class="co-pay-group">
+              <el-radio value="wechat" size="large" class="co-pay-radio-item">
+                <div class="co-pay-option">
+                  <svg viewBox="0 0 24 24" fill="#07C160" width="20" height="20"><path d="M8.5 13.5l-2 2v-2H5a1 1 0 01-1-1V5a1 1 0 011-1h14a1 1 0 011 1v7.5a1 1 0 01-1 1H9.5l-2 2H8.5z"/></svg>
+                  <span>微信支付</span>
+                </div>
+              </el-radio>
+              <el-radio value="alipay" size="large" class="co-pay-radio-item">
+                <div class="co-pay-option">
+                  <svg viewBox="0 0 24 24" fill="#1677FF" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8" stroke="#fff" stroke-width="2"/></svg>
+                  <span>支付宝</span>
+                </div>
+              </el-radio>
+            </el-radio-group>
+          </div>
+
+          <!-- 发票 -->
+          <div class="co-card">
+            <div class="co-card-header">
+              <div class="co-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="co-icon"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span>发票信息</span>
+              </div>
+            </div>
+            <el-radio-group v-model="invoiceType" class="co-invoice-group">
+              <el-radio value="none" class="co-invoice-item">不需要发票</el-radio>
+              <el-radio value="personal" class="co-invoice-item">个人发票</el-radio>
+              <el-radio value="company" class="co-invoice-item">企业发票</el-radio>
+            </el-radio-group>
+          </div>
+
+          <div style="display:flex;gap:12px;">
+            <el-button type="primary" size="large" :loading="submitting" style="flex:1;height:48px;font-size:16px;border-radius:12px;" @click="handleSubmit">
+              提交订单
+            </el-button>
+            <el-button size="large" :loading="mockSubmitting" style="flex:1;height:48px;font-size:16px;border-radius:12px;background:#fff;color:#FF7D00;border:2px solid #FF7D00;" @click="handleMockPay">
+              模拟支付
+            </el-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 地址对话框 ===== -->
+      <el-dialog v-model="showAddressDialog" :title="editingAddress ? '修改地址' : '新增地址'" width="520px" :close-on-click-modal="false">
+        <el-form :model="addressForm" label-position="top">
+          <el-form-item label="收件人姓名"><el-input v-model="addressForm.name" placeholder="请输入姓名" /></el-form-item>
+          <el-form-item label="手机号码"><el-input v-model="addressForm.phone" placeholder="请输入手机号" /></el-form-item>
+          <el-form-item label="宿舍楼">
+            <el-select v-model="addressForm.dormitoryId" placeholder="请选择宿舍楼" style="width:100%">
+              <el-option v-for="d in dormitories" :key="d.id" :label="d.name" :value="d.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="详细地址"><el-input v-model="addressForm.detailAddress" placeholder="如：3栋203室" /></el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="showAddressDialog = false">取消</el-button>
+          <el-button type="primary" :loading="savingAddress" @click="saveAddress">保存</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- ===== 支付弹窗（直接显示二维码） ===== -->
+      <el-dialog v-model="showPayDialog" title="支付" width="420px" :close-on-click-modal="false" :close-on-press-escape="false" @close="onPayDialogClose">
+        <div v-if="qrCodeStr" style="text-align:center;padding:10px 0;">
+          <div style="font-size:14px;color:#666;margin-bottom:16px;">使用支付宝扫描下方二维码支付</div>
+          <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qrCodeStr)"
+               style="width:200px;height:200px;border-radius:8px;border:1px solid #f0f0f0;"
+               alt="支付二维码"
+               onerror="this.alt='二维码加载失败';this.style.display='none'">
+          <div style="margin-top:8px;font-size:12px;color:#999;">
+            支付成功后自动跳转
+          </div>
+        </div>
+        <div v-else style="text-align:center;padding:30px 0;">
+          <div style="font-size:14px;color:#666;">获取二维码中...</div>
+        </div>
+      </el-dialog>
+
+    </div>
+  </div>
+
+  <!-- ===== 关联订单模态框 (inline, not redirect) ===== -->
+  <div class="modal" id="paymentGroupModal">
+    <div class="modal-dialog large">
+      <div class="modal-header">
+        <h3>关联订单</h3>
+        <button class="modal-close" onclick="closePaymentGroupModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="paymentGroupBody">
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue 3 + Element Plus CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/element-plus"></script>
+  <script src="../js/api.js"></script>
+  <script>
+    const { createApp, ref, computed, onMounted, onUnmounted } = Vue
+
+    const app = createApp({
+      setup() {
+        const step = ref(2)
+
+        /* ---------- 地址 ---------- */
+        const addresses = ref([])
+        const selectedAddressId = ref(null)
+        const showAddressDialog = ref(false)
+        const editingAddress = ref(null)
+        const savingAddress = ref(false)
+        const dormitories = ref([])
+        const addressForm = ref({ name: '', phone: '', dormitoryId: null, detailAddress: '' })
+
+        /* ---------- 商品 ---------- */
+        const orderItems = ref([])
+
+        const sellerGroups = computed(() => {
+          const map = {}
+          orderItems.value.forEach(item => {
+            if (!map[item.sellerId]) {
+              map[item.sellerId] = { sellerId: item.sellerId, sellerNickname: item.sellerNickname, sellerAvatar: item.sellerAvatar, items: [] }
+            }
+            map[item.sellerId].items.push(item)
+          })
+          return Object.values(map)
+        })
+
+        const totalPrice = computed(() => orderItems.value.reduce((s, i) => s + i.price * i.quantity, 0))
+        const totalCount = computed(() => orderItems.value.reduce((s, i) => s + i.quantity, 0))
+
+        /* ---------- 支付 / 发票 ---------- */
+        const paymentMethod = ref('wechat')
+        const invoiceType = ref('none')
+
+        /* ---------- 提交 ---------- */
+        const submitting = ref(false)
+
+        /* ---------- 支付弹窗 ---------- */
+        const showPayDialog = ref(false)
+        const qrCodeStr = ref('')
+        const paymentNo = ref('')
+        const mockSubmitting = ref(false)
+        let payTimer = null
+
+        /* ---------- 方法 ---------- */
+        function increaseQty(item) { item.quantity++ }
+        function decreaseQty(item) { if (item.quantity > 1) item.quantity-- }
+
+        function openAddAddress() {
+          editingAddress.value = null
+          addressForm.value = { name: '', phone: '', dormitoryId: null, detailAddress: '' }
+          showAddressDialog.value = true
+        }
+        function editAddress(addr) {
+          editingAddress.value = addr
+          addressForm.value = { name: addr.name, phone: addr.phone, dormitoryId: addr.dormitoryId, detailAddress: addr.detailAddress }
+          showAddressDialog.value = true
+        }
+        function deleteAddress(addr) {
+          ElMessageBox.confirm('确定要删除该地址吗？', '提示', { type: 'warning' }).then(() => {
+            addresses.value = addresses.value.filter(a => a.id !== addr.id)
+            if (selectedAddressId.value === addr.id) selectedAddressId.value = addresses.value[0]?.id || null
+          }).catch(() => {})
+        }
+        function saveAddress() {
+          savingAddress.value = true
+          setTimeout(() => {
+            if (editingAddress.value) {
+              Object.assign(editingAddress.value, addressForm.value)
+            } else {
+              addresses.value.unshift({
+                id: Date.now(), ...addressForm.value,
+                isDefault: addresses.value.length === 0 ? 1 : 0,
+                schoolName: '某某大学',
+                dormitoryName: dormitories.value.find(d => d.id === addressForm.value.dormitoryId)?.name || '',
+              })
+              if (!selectedAddressId.value) selectedAddressId.value = addresses.value[0].id
+            }
+            savingAddress.value = false
+            showAddressDialog.value = false
+            editingAddress.value = null
+            addressForm.value = { name: '', phone: '', dormitoryId: null, detailAddress: '' }
+          }, 300)
+        }
+
+        async function handleSubmit() {
+          if (!selectedAddressId.value) {
+            ElMessage.warning('请选择收货地址')
+            return
+          }
+          submitting.value = true
+          try {
+            var pmMap = { alipay: 1, wechat: 2 }
+            var pm = pmMap[paymentMethod.value] || 1
+            var res = await API.order.submit(pm, selectedAddressId.value)
+            if (!isApiOk(res) || !res.data || !res.data.length) {
+              var errMsg = res.msg || '订单提交失败'
+              ElMessage.error(errMsg)
+              if (errMsg.indexOf('库存不足') !== -1 || errMsg.indexOf('已下架') !== -1 || errMsg.indexOf('审核未通过') !== -1) {
+                setTimeout(function() { window.location.href = 'user.html?tab=cart'; }, 1500)
+              }
+              submitting.value = false
+              return
+            }
+
+            step.value = 3
+            paymentNo.value = res.data[0].paymentNo
+            window.__paymentNo = paymentNo.value
+            localStorage.removeItem('checkoutItems')
+
+            //获取二维码并显示支付弹窗
+            var qrRes = await API.pay.create(paymentNo.value)
+            if (isApiOk(qrRes) && qrRes.data) {
+              qrCodeStr.value = qrRes.data
+              showPayDialog.value = true
+              startPolling()
+            } else {
+              ElMessage.error('获取支付二维码失败')
+            }
+          } catch (e) {
+            ElMessage.error('订单提交异常: ' + (e.message || '未知错误'))
+          } finally {
+            submitting.value = false
+          }
+        }
+
+        /** 模拟支付：提交订单后调用模拟接口，直接跳转购物车 */
+        async function handleMockPay() {
+          if (!selectedAddressId.value) {
+            ElMessage.warning('请选择收货地址')
+            return
+          }
+          mockSubmitting.value = true
+          try {
+            var pmMap = { alipay: 1, wechat: 2 }
+            var pm = pmMap[paymentMethod.value] || 1
+            var res = await API.order.submit(pm, selectedAddressId.value)
+            if (!isApiOk(res) || !res.data || !res.data.length) {
+              var errMsg = res.msg || '订单提交失败'
+              ElMessage.error(errMsg)
+              if (errMsg.indexOf('库存不足') !== -1 || errMsg.indexOf('已下架') !== -1 || errMsg.indexOf('审核未通过') !== -1) {
+                setTimeout(function() { window.location.href = 'user.html?tab=cart'; }, 1500)
+              }
+              return
+            }
+            var pno = res.data[0].paymentNo
+            localStorage.removeItem('checkoutItems')
+            await API.pay.mock(pno).catch(function(){})
+            ElMessage.success('模拟支付成功')
+            window.location.href = 'user.html?tab=cart'
+          } catch (e) {
+            ElMessage.error('模拟支付异常: ' + (e.message || '未知错误'))
+          } finally {
+            mockSubmitting.value = false
+          }
+        }
+
+        /* ---------- 轮询支付状态 ---------- */
+        function startPolling() {
+          if (payTimer) clearInterval(payTimer)
+          payTimer = setInterval(async function() {
+            try {
+              var res = await API.order.groupDetail(paymentNo.value, 'buy')
+              if (isApiOk(res) && res.data) {
+                if (res.data.status >= 1 && res.data.status !== 4) {
+                  step.value = 4
+                  clearInterval(payTimer)
+                  payTimer = null
+                  showPayDialog.value = false
+                  ElMessage.success('支付成功')
+                } else if (res.data.status === 4) {
+                  clearInterval(payTimer)
+                  payTimer = null
+                  showPayDialog.value = false
+                }
+              }
+            } catch (e) {}
+          }, 3000)
+        }
+
+        function stopPolling() {
+          if (payTimer) { clearInterval(payTimer); payTimer = null }
+        }
+
+        /* 支付弹窗关闭后弹出关联订单模态框 */
+        function onPayDialogClose() {
+          stopPolling()
+          if (paymentNo.value) {
+            window.__paymentNo = paymentNo.value
+            setTimeout(function() { viewPaymentGroupDetail(paymentNo.value); }, 300)
+          }
+        }
+
+        /* 暴露给全局，供"去支付"按钮重新打开支付弹窗 */
+        window.__openPayDialog = async function() {
+          if (window.__paymentNo) {
+            qrCodeStr.value = ''
+            showPayDialog.value = true
+            var qrRes = await API.pay.create(window.__paymentNo).catch(function(){ return null })
+            if (isApiOk(qrRes) && qrRes.data) {
+              qrCodeStr.value = qrRes.data
+              startPolling()
+            } else {
+              ElMessage.error('获取支付二维码失败')
+              showPayDialog.value = false
+            }
+          }
+        }
+
+        /* ---------- 初始化 ---------- */
+        onMounted(async () => {
+          // 加载地址
+          try {
+            const res = await API.address.list()
+            if (isApiOk(res) && res.data && res.data.length) {
+              addresses.value = res.data
+              const def = res.data.find(a => a.isDefault === 1)
+              selectedAddressId.value = def ? def.id : res.data[0].id
+            }
+          } catch (e) { /* fallback mock */ }
+
+          // 加载宿舍楼列表
+          try {
+            const res = await API.address.dormitoryList()
+            if (isApiOk(res) && res.data) dormitories.value = res.data
+          } catch (e) {}
+
+          // 从缓存加载购物车选中商品
+          try {
+            const cached = localStorage.getItem('checkoutItems')
+            if (cached) {
+              const items = JSON.parse(cached)
+              const goodsIds = items.map(i => i.goodsId)
+              const res = await API.goods.batchDetail(goodsIds)
+              if (isApiOk(res) && res.data) {
+                orderItems.value = res.data.map(g => ({
+                  ...g,
+                  quantity: items.find(i => i.goodsId === g.goodsId)?.quantity || 1,
+                  sellerId: g.userId,
+                  sellerNickname: g.username,
+                  sellerAvatar: g.avatar,
+                  firstImage: g.imageUrls?.[0] || ''
+                }))
+              }
+            }
+          } catch (e) {}
+
+          // 无选中商品则用模拟数据
+          if (!orderItems.value.length) {
+            orderItems.value = [
+              { goodsId: 1, goodsName: '线性代数 第六版 同济大学', price: 29.99, quantity: 1, firstImage: '', sellerId: 101, sellerNickname: '小明', sellerAvatar: '' },
+              { goodsId: 2, goodsName: '高等数学 第七版 上册', price: 39.99, quantity: 1, firstImage: '', sellerId: 101, sellerNickname: '小明', sellerAvatar: '' },
+            ]
+            if (!selectedAddressId.value) {
+              addresses.value = [
+                { id: 1, name: '张三', phone: '13800138000', dormitoryId: 1, dormitoryName: '梅苑1栋', detailAddress: '3楼303室', schoolName: '华南理工大学', isDefault: 1 },
+              ]
+              dormitories.value = [{ id: 1, name: '梅苑1栋' }, { id: 2, name: '兰苑2栋' }]
+              selectedAddressId.value = 1
+            }
+          }
+        })
+
+        //离开页面时清理轮询
+        onUnmounted(function() { stopPolling() })
+
+        return {
+          step, addresses, selectedAddressId, showAddressDialog, editingAddress,
+          savingAddress, dormitories, addressForm, orderItems, sellerGroups,
+          totalPrice, totalCount, paymentMethod, invoiceType, submitting,
+          showPayDialog, qrCodeStr, mockSubmitting,
+          increaseQty, decreaseQty, openAddAddress, editAddress, deleteAddress,
+          saveAddress, handleSubmit, handleMockPay,
+        }
+      }
+    })
+
+    app.use(ElementPlus)
+    app.mount('#app')
+  </script>
+
+  <script>
+    /* ===== Modal Helpers ===== */
+    function openModal(modalId) {
+      var modal = document.getElementById(modalId);
+      if (modal) { modal.classList.add('active'); document.body.style.overflow = 'hidden'; }
+    }
+    function closeModal(modalId) {
+      var modal = document.getElementById(modalId);
+      if (modal) { modal.classList.remove('active'); }
+      var anyActive = document.querySelectorAll('.modal.active');
+      if (anyActive.length === 0) document.body.style.overflow = '';
+      if (paymentGroupCountdownTimer) { clearInterval(paymentGroupCountdownTimer); paymentGroupCountdownTimer = null; }
+    }
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"]/g, function(m) {
+        return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' })[m] || m;
+      });
+    }
+    function getStatusColor(status) {
+      var map = { 0: '#FF7D00', 1: '#1677FF', 2: '#722ED1', 3: '#07C160', 4: '#999', 5: '#FAAD14', 6: '#999' };
+      return map[status] || '#999';
+    }
+    function formatDateTime(timeStr) {
+      if (!timeStr) return '';
+      try {
+        var d = new Date(timeStr);
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      } catch (e) { return timeStr; }
+    }
+
+    /* ===== Payment Group Detail ===== */
+    var orderRole = 'buy';
+    var paymentGroupCountdownTimer = null;
+
+    /** 查看关联订单详情（在模态框中展示） */
+    async function viewPaymentGroupDetail(paymentNo) {
+      if (!paymentNo) return;
+      var body = document.getElementById('paymentGroupBody');
+      if (!body) return;
+      body.innerHTML = '<div class="loading-placeholder">加载中...</div>';
+      openModal('paymentGroupModal');
+
+      try {
+        var role = 'buy';
+        var results = await Promise.all([
+          API.order.groupDetail(paymentNo, role),
+          API.order.addresses(paymentNo, role)
+        ]);
+        var groupRes = results[0], addrRes = results[1];
+        if (!isApiOk(groupRes) || !groupRes.data) {
+          body.innerHTML = '<div class="loading-placeholder">加载失败</div>';
+          return;
+        }
+        var addresses = isApiOk(addrRes) && addrRes.data ? addrRes.data : [];
+
+        renderPaymentGroupDetail(groupRes.data, addresses);
+      } catch (e) {
+        console.error('加载大订单详情失败:', e);
+        body.innerHTML = '<div class="loading-placeholder">加载失败</div>';
+      }
+    }
+
+    /** 渲染大订单详情 */
+    function renderPaymentGroupDetail(group, addresses) {
+      var body = document.getElementById('paymentGroupBody');
+      if (!body) return;
+
+      if (paymentGroupCountdownTimer) { clearInterval(paymentGroupCountdownTimer); paymentGroupCountdownTimer = null; }
+
+      var html = `
+        <div style="background:#fff;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.06);">
+          <div style="font-size:13px;color:#999;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f5f5f5;display:flex;justify-content:space-between;align-items:center;">
+            <span>订单号: ${escapeHtml(group.orderNo || '—')}</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+              <span style="font-weight:500;color:${getStatusColor(group.status)};">${group.statusText || ''}</span>
+              ${group.status === 0 ? '<button onclick="event.stopPropagation();payNowFromGroup()" style="border:none;background:#FF7D00;color:#fff;font-size:12px;padding:3px 10px;border-radius:4px;cursor:pointer;white-space:nowrap;">去支付</button>' : ''}
+            </span>
+          </div>
+          <div style="font-size:13px;color:#666;line-height:2;">
+            <div>支付宝交易号: ${escapeHtml(group.alipayTradeNo || '—')}</div>
+            <div>下单时间: ${group.createTime ? formatDateTime(group.createTime) : '—'}</div>
+            ${group.payTime ? '<div>支付时间: ' + formatDateTime(group.payTime) + '</div>' : ''}
+            <div style="font-weight:700;color:#FF4D4F;font-size:16px;margin-top:4px;">合计: ¥${group.totalAmount ? group.totalAmount.toFixed(2) : '0.00'}</div>
+            ${group.status === 0 ? '<div id="paymentGroupCountdown" style="font-size:13px;color:#FF4D4F;font-weight:600;margin-top:6px;">支付剩余时间: 计算中...</div>' : ''}
+          </div>
+        </div>
+
+        ${(group.sellers || []).map(function(seller) {
+          return `
+            <div style="background:#fff;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.06);">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f5f5f5;">
+                <img src="${seller.counterpartyAvatar || ''}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;background:#f3f4f6;"
+                  onerror="this.style.display='none'">
+                <div style="font-size:13px;font-weight:500;color:#333;">卖家: ${escapeHtml(seller.counterpartyNickname || '未知')}</div>
+              </div>
+              ${(seller.items || []).map(function(item) {
+                return `
+                  <div style="display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #f8f8f8;">
+                    <img src="${item.goodsImage || ''}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;background:#f3f4f6;"
+                      onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect fill=%22%23f3f4f6%22 width=%2264%22 height=%2264%22/></svg>'">
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:14px;font-weight:500;color:#333;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(item.goodsName || '未知商品')}</div>
+                      <div style="font-size:12px;color:#999;">¥${item.price ? item.price.toFixed(2) : '0.00'} × ${item.quantity || 0}</div>
+                      <div style="font-size:11px;color:#bbb;">${item.tradeTypeText || ''}</div>
+                    </div>
+                    <div style="font-weight:600;color:#333;flex-shrink:0;">¥${item.subtotal ? item.subtotal.toFixed(2) : '0.00'}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }).join('')}
+
+        ${addresses && addresses.length ? `
+          <div style="background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,0.06);">
+            <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f5f5f5;">取货地址</div>
+            ${function(){
+              var groups = {};
+              addresses.forEach(function(addr){
+                var key = (addr.dormitoryName||'') + '|' + (addr.detailAddress||'') + '|' + (addr.name||'') + '|' + (addr.phone||'');
+                if (!groups[key]) groups[key] = { dormitoryName: addr.dormitoryName, detailAddress: addr.detailAddress, name: addr.name, phone: addr.phone, goods: [] };
+                groups[key].goods.push(addr.goodsName || '');
+              });
+              var out = '';
+              for (var k in groups) {
+                var g = groups[k];
+                out += '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f8f8f8;">';
+                out += '<div style="flex:1;font-size:13px;color:#555;line-height:1.8;">';
+                out += '<div style="font-weight:500;color:#333;">' + escapeHtml(g.goods.join('、')) + '</div>';
+                out += '<div>' + escapeHtml(g.dormitoryName||'') + ' ' + escapeHtml(g.detailAddress||'') + '</div>';
+                out += '<div>' + escapeHtml(g.name||'') + ' ' + escapeHtml(g.phone||'') + '</div>';
+                out += '</div></div>';
+              }
+              return out;
+            }()}
+          </div>
+        ` : ''}
+      `;
+
+      body.innerHTML = html;
+
+      //倒计时
+      if (group.status === 0 && group.createTime) {
+        var deadline = new Date(group.createTime).getTime() + 30 * 60 * 1000;
+        function updateCountdown() {
+          var remaining = deadline - Date.now();
+          var el = document.getElementById('paymentGroupCountdown');
+          if (!el) return;
+          if (remaining <= 0) {
+            el.textContent = '支付已超时，订单已取消';
+            el.style.color = '#999';
+            clearInterval(paymentGroupCountdownTimer);
+            paymentGroupCountdownTimer = null;
+            return;
+          }
+          var min = Math.floor(remaining / 60000);
+          var sec = Math.floor((remaining % 60000) / 1000);
+          el.textContent = '支付剩余时间: ' + min + '分' + (sec < 10 ? '0' : '') + sec + '秒';
+        }
+        updateCountdown();
+        paymentGroupCountdownTimer = setInterval(updateCountdown, 1000);
+      }
+    }
+
+    /** 关闭关联订单模态框，同时跳转到用户页（关弹窗 = 看完了） */
+    function closePaymentGroupModal() {
+      var modal = document.getElementById('paymentGroupModal');
+      if (modal) modal.classList.remove('active');
+      document.body.style.overflow = '';
+      if (paymentGroupCountdownTimer) { clearInterval(paymentGroupCountdownTimer); paymentGroupCountdownTimer = null; }
+      var pno = window.__paymentNo;
+      if (pno) {
+        window.location.href = 'user.html?paymentNo=' + pno;
+      } else {
+        window.location.href = 'user.html?tab=cart';
+      }
+    }
+
+    /** 从关联订单模态框中点击"去支付"重新打开支付弹窗 */
+    function payNowFromGroup() {
+      closeModal('paymentGroupModal');
+      if (typeof window.__openPayDialog === 'function') {
+        window.__openPayDialog();
+      }
+    }
+  </script>
+</body>
+</html>
